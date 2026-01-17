@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Home, MessageSquare, Calendar, FolderOpen, Menu, X } from 'lucide-react';
-import '../../index.css';
+
 
 const Sidebar = ({ activeTab, setActiveTab, isMobile }) => {
     const [isOpen, setIsOpen] = useState(false);
