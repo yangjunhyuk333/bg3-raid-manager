@@ -132,13 +132,13 @@ const Layout = () => {
             case 'save': return <SaveAnalyzer {...commonProps} />;
             case 'admin': return <CampManagement {...commonProps} />;
             case 'tactics': return <TacticsBoard {...commonProps} />;
-            case 'profile': return <div style={{ padding: '20px', color: 'white', textAlign: 'center' }}>프로필 설정은 사이드바 메뉴를 이용해주세요.</div>; // Fallback
+            case 'profile': return <ProfileSetup user={user} onComplete={() => window.location.reload()} isMobile={isMobile} />;
             default: return <Home {...commonProps} setActiveTab={setActiveTab} />;
         }
     };
 
     return (
-        <div className="layout-container" style={{ display: 'flex', minHeight: '100vh', background: '#0a0a10', color: '#e2e8f0', fontFamily: 'Pretendard, sans-serif' }}>
+        <div className="layout-container" style={{ display: 'flex', minHeight: '100vh', color: '#e2e8f0', fontFamily: 'Pretendard, sans-serif' }}>
             <Sidebar
                 activeTab={activeTab}
                 setActiveTab={setActiveTab}
