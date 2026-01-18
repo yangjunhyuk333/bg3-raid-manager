@@ -7,12 +7,18 @@ import SaveAnalyzer from '../../features/SaveAnalyzer';
 import ProfileSetup from '../../features/ProfileSetup';
 import CampManagement from '../../features/CampManagement';
 import TacticsBoard from '../../features/TacticsBoard';
+import SurvivorsModal from '../../features/SurvivorsModal';
 import { db } from '../../lib/firebase';
 import { doc, updateDoc, serverTimestamp, collection, query, where, onSnapshot } from 'firebase/firestore';
 
 const Layout = () => {
     const [activeTab, setActiveTab] = useState('home');
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+    // Lifted State for Presence/Survivors
+    const [onlineUsersCount, setOnlineUsersCount] = useState(0);
+    const [showSurvivors, setShowSurvivors] = useState(false);
+
     const [user, setUser] = useState(() => {
         try {
             return JSON.parse(localStorage.getItem('bg3_user_profile'));
@@ -32,9 +38,7 @@ const Layout = () => {
         const validateSession = async () => {
             if (!user) return;
             try {
-                // Check if user still exists in Firebase
-                /* Note: We rely on local storage for speed, but this verifies it asynchronously. 
-                   If the user was deleted (e.g. by admin), this will logout them out. */
+                // Check if user still exists in Firebase or validate session
             } catch (e) {
                 console.error("Session check failed");
             }
@@ -62,12 +66,26 @@ const Layout = () => {
         // Interval
         const interval = setInterval(updateHeartbeat, 60000); // 1 min
 
-        // Cleanup: Try to set offline? (Optional, unreliable on close)
-
         return () => clearInterval(interval);
     }, [user?.id]);
 
-    // 2. NOTIFICATION LISTENER (Wake Up)
+    // 2. PRESENCE LISTENER (Lifted from Sidebar)
+    useEffect(() => {
+        if (!user?.campId) return;
+
+        const q = query(
+            collection(db, "users_v2"),
+            where("campId", "==", user.campId)
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            setOnlineUsersCount(snapshot.size);
+        });
+
+        return () => unsubscribe();
+    }, [user?.campId]);
+
+    // 3. NOTIFICATION LISTENER (Wake Up)
     useEffect(() => {
         if (!user?.campId || !user?.id) return;
 
@@ -99,47 +117,46 @@ const Layout = () => {
         return () => unsub();
     }, [user?.campId, user?.id]);
 
-    const handleProfileComplete = (userData) => {
-        setUser(userData);
-    };
+    if (!user) {
+        return <ProfileSetup onComplete={() => window.location.reload()} isMobile={isMobile} />;
+    }
 
     const renderContent = () => {
+        // Pass common props including presence state
+        const commonProps = { user, isMobile, onlineUsersCount, setShowSurvivors };
+
         switch (activeTab) {
-            case 'home': return <Home user={user} setActiveTab={setActiveTab} isMobile={isMobile} />;
-            case 'chat': return <ChatRoom user={user} isMobile={isMobile} />;
-            case 'calendar': return <RaidScheduler user={user} isMobile={isMobile} />;
-            case 'tactics': return <TacticsBoard user={user} isMobile={isMobile} />;
-            case 'save': return <SaveAnalyzer user={user} isMobile={isMobile} />;
-            case 'profile': return <ProfileSetup onComplete={handleProfileComplete} initialData={user} isMobile={isMobile} />;
-            case 'admin': return user?.isAdmin ? <CampManagement user={user} isMobile={isMobile} /> : <Home user={user} setActiveTab={setActiveTab} isMobile={isMobile} />;
-            default: return <Home user={user} setActiveTab={setActiveTab} isMobile={isMobile} />;
+            case 'home': return <Home {...commonProps} setActiveTab={setActiveTab} />;
+            case 'chat': return <ChatRoom {...commonProps} />;
+            case 'calendar': return <RaidScheduler {...commonProps} />;
+            case 'save': return <SaveAnalyzer {...commonProps} />;
+            case 'admin': return <CampManagement {...commonProps} />;
+            case 'tactics': return <TacticsBoard {...commonProps} />;
+            case 'profile': return <div style={{ padding: '20px', color: 'white', textAlign: 'center' }}>프로필 설정은 사이드바 메뉴를 이용해주세요.</div>; // Fallback
+            default: return <Home {...commonProps} setActiveTab={setActiveTab} />;
         }
     };
 
-    if (!user) {
-        return <ProfileSetup onComplete={handleProfileComplete} isMobile={isMobile} />;
-    }
-
     return (
-        <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg-color)', color: 'white' }}>
-            <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} isMobile={isMobile} user={user} />
+        <div className="layout-container" style={{ display: 'flex', minHeight: '100vh', background: '#0a0a10', color: '#e2e8f0', fontFamily: 'Pretendard, sans-serif' }}>
+            <Sidebar
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                isMobile={isMobile}
+                user={user}
+                // Pass props to Sidebar
+                onlineUsersCount={onlineUsersCount}
+                setShowSurvivors={setShowSurvivors}
+            />
 
-            <main style={{
-                flex: 1,
-                padding: 0, // Reset padding, handle inside content
-                height: '100vh',
-                overflowY: 'auto',
-                position: 'relative'
-            }}>
-                <div style={{
-                    padding: isMobile ? 'calc(20px + env(safe-area-inset-top)) 20px calc(80px + env(safe-area-inset-bottom))' : '40px',
-                    maxWidth: activeTab === 'chat' ? '100%' : '1200px',
-                    margin: '0 auto',
-                    minHeight: '100%'
-                }}>
-                    {renderContent()}
-                </div>
+            <main style={{ flex: 1, padding: isMobile ? '20px 20px 90px' : '40px', overflowY: 'auto', position: 'relative' }}>
+                {renderContent()}
             </main>
+
+            {/* Global Survivors Modal */}
+            {showSurvivors && (
+                <SurvivorsModal user={user} onClose={() => setShowSurvivors(false)} />
+            )}
         </div>
     );
 };

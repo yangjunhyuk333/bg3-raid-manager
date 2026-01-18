@@ -5,7 +5,7 @@ import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 
 import logo from '../assets/logo.svg';
 
-const Home = ({ user, setActiveTab, isMobile }) => {
+const Home = ({ user, setActiveTab, isMobile, onlineUsersCount, setShowSurvivors }) => {
     const [recentRaids, setRecentRaids] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -79,9 +79,29 @@ const Home = ({ user, setActiveTab, isMobile }) => {
             }}>
                 {/* Logo added for Mobile/Desktop unification or just mobile? User said "put a logo above that area" */}
                 {isMobile && (
-                    <div className="logo-wrapper" style={{ position: 'relative', width: '180px', margin: '0 auto 20px' }}>
+                    <div className="logo-wrapper" style={{ position: 'relative', width: '180px', margin: '0 auto 10px' }}>
                         <img src={logo} alt="BG3" style={{ width: '100%' }} onClick={() => window.location.reload()} />
                         <div className="logo-shine" style={{ WebkitMaskImage: `url(${logo})`, maskImage: `url(${logo})` }} />
+                    </div>
+                )}
+
+                {/* Mobile: Online Users Pill (Moved here from Floating Top Left as desired) */}
+                {isMobile && (
+                    <div
+                        onClick={() => setShowSurvivors && setShowSurvivors(true)}
+                        style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '8px',
+                            background: 'rgba(20, 20, 30, 0.6)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            borderRadius: '20px', padding: '8px 16px',
+                            marginBottom: '20px', cursor: 'pointer',
+                            boxShadow: '0 4px 10px rgba(0,0,0,0.2)'
+                        }}
+                    >
+                        <Users size={14} color="#4ade80" />
+                        <span style={{ color: '#4ade80', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                            {onlineUsersCount || 0}/4명 접속 중
+                        </span>
                     </div>
                 )}
 
