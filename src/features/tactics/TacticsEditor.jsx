@@ -20,6 +20,9 @@ const TacticsEditor = ({ user, tacticId, initialData, onBack, isMobile, isStanda
     const [lastPointer, setLastPointer] = useState({ x: 0, y: 0 });
     const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
+    // Persistence State
+    const [saveStatus, setSaveStatus] = useState('saved'); // saved, saving, error
+
     const canvasRef = useRef(null);
     const saveTimeout = useRef(null);
     const isRemoteUpdate = useRef(false);
@@ -44,6 +47,8 @@ const TacticsEditor = ({ user, tacticId, initialData, onBack, isMobile, isStanda
                 // Check Refs to ensure we don't interrupt active user interaction
                 if (!isDraggingElementRef.current && !isDraggingCanvasRef.current && !editingIdRef.current) {
                     isRemoteUpdate.current = true;
+                    // Only update if data is different? React handles diffing, but setElements triggers save loop.
+                    // isRemoteUpdate flag prevents loop.
                     setElements(data.elements || []);
                 }
             }
@@ -54,20 +59,15 @@ const TacticsEditor = ({ user, tacticId, initialData, onBack, isMobile, isStanda
 
     // 2. Auto Save Logic (Write)
     const saveToFirestore = useCallback((newElements) => {
+        setSaveStatus('saving');
         if (saveTimeout.current) clearTimeout(saveTimeout.current);
 
         saveTimeout.current = setTimeout(async () => {
             if (!tacticId || !user?.nickname) return;
 
-            // SECURITY: Prevent overwriting with empty array if we haven't confirmed a load or interaction
-            // This prevents "Wiping" on bad initialization
-            if (newElements.length === 0 && !isDraggingElementRef.current && !editingIdRef.current) {
-                // Optimization: You might legitimately want to save an empty board.
-                // But in this context of "Disappearing data", it's likely a bug.
-                // We'll trust "isRemoteUpdate" primarily, but maybe add a check?
-                // Let's assume if it's empty, we only save if we are SURE.
-                // For now, let's keep it standard but ensure the useEffect guard is robust.
-            }
+            // Simple empty guard - allow empty if it was explicit, but prevent init overwrite?
+            // If initialized with empty [], we shouldn't save unless user did something.
+            // But here, elements HAS changed (dependency). So we should save.
 
             try {
                 const tacticRef = doc(db, "tactics", tacticId);
@@ -76,8 +76,10 @@ const TacticsEditor = ({ user, tacticId, initialData, onBack, isMobile, isStanda
                     lastModified: serverTimestamp(),
                     lastModifiedBy: user.nickname
                 });
+                setSaveStatus('saved');
             } catch (e) {
                 console.error("Save failed", e);
+                setSaveStatus('error');
             }
         }, 1000); // 1s Debounce
     }, [tacticId, user.nickname]);
@@ -87,6 +89,7 @@ const TacticsEditor = ({ user, tacticId, initialData, onBack, isMobile, isStanda
             isRemoteUpdate.current = false;
             return;
         }
+        // Only save if we have initial data loaded or user interaction
         saveToFirestore(elements);
     }, [elements, saveToFirestore]);
 
@@ -248,30 +251,44 @@ const TacticsEditor = ({ user, tacticId, initialData, onBack, isMobile, isStanda
 
     // 5. Render
     return (
-        <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#1a1a1a', position: 'relative' }}>
+        <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#111116', position: 'relative' }}>
 
             {/* Header / Toolbar overlay */}
             <div style={{
                 position: 'absolute', top: 0, left: 0, right: 0, zIndex: 100,
-                padding: '15px 20px', background: 'rgba(20,20,30,0.8)', backdropFilter: 'blur(10px)',
+                padding: '15px 25px',
+                background: 'linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%)',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                borderBottom: '1px solid rgba(255,255,255,0.1)'
+                pointerEvents: 'none' // Allow click through to canvas
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', pointerEvents: 'auto' }}>
                     {!isStandalone && (
-                        <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', cursor: 'pointer', padding: '8px', borderRadius: '50%' }}>
+                        <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', cursor: 'pointer', padding: '10px', borderRadius: '50%', backdropFilter: 'blur(5px)' }}>
                             <ArrowLeft size={20} />
                         </button>
                     )}
-                    <h2 style={{ margin: 0, fontSize: '1rem', opacity: 0.8, color: 'white' }}>{initialData.title || '전술 편집'}</h2>
+                    <div>
+                        <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 'bold', color: 'white', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>{initialData.title || '전술 편집'}</h2>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{
+                                width: '8px', height: '8px', borderRadius: '50%',
+                                background: saveStatus === 'saved' ? '#4ade80' : (saveStatus === 'saving' ? '#facc15' : '#ef4444'),
+                                boxShadow: saveStatus === 'saving' ? '0 0 10px #facc15' : 'none'
+                            }} />
+                            <span style={{ fontSize: '0.75rem', opacity: 0.6 }}>
+                                {saveStatus === 'saved' ? '저장됨' : (saveStatus === 'saving' ? '저장 중...' : '저장 실패')}
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div style={{ fontSize: '0.8rem', opacity: 0.8, display: 'flex', gap: '10px', alignItems: 'center' }}>
+
+                <div style={{ fontSize: '0.8rem', opacity: 0.8, display: 'flex', gap: '10px', alignItems: 'center', pointerEvents: 'auto' }}>
                     <button
                         onClick={() => window.open(`?tacticId=${tacticId}`, '_blank')}
-                        style={{ background: 'var(--accent-color)', border: 'none', color: 'white', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                        style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', borderRadius: '8px', padding: '8px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', backdropFilter: 'blur(5px)' }}
                         title="새 탭에서 꽉 찬 화면으로 열기"
                     >
-                        <ExternalLink size={14} /> {isMobile ? '' : '새 탭 열기'}
+                        <ExternalLink size={14} /> {isMobile ? '' : '새 창'}
                     </button>
 
                     {selectedId && (
@@ -279,12 +296,12 @@ const TacticsEditor = ({ user, tacticId, initialData, onBack, isMobile, isStanda
                             {(elements.find(e => e.id === selectedId)?.type === 'text' || elements.find(e => e.id === selectedId)?.type === 'video') && (
                                 <button
                                     onClick={handleEditSelected}
-                                    style={{ background: '#3b82f6', border: 'none', color: 'white', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
+                                    style={{ background: '#3b82f6', border: 'none', color: 'white', borderRadius: '8px', padding: '8px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', boxShadow: '0 4px 10px rgba(59, 130, 246, 0.3)' }}
                                 >
                                     <Edit size={14} /> 편집
                                 </button>
                             )}
-                            <button onClick={handleDeleteElement} style={{ background: '#ef4444', border: 'none', color: 'white', borderRadius: '8px', padding: '6px 12px', cursor: 'pointer' }}>
+                            <button onClick={handleDeleteElement} style={{ background: '#ef4444', border: 'none', color: 'white', borderRadius: '8px', padding: '8px 14px', cursor: 'pointer', boxShadow: '0 4px 10px rgba(239, 68, 68, 0.3)' }}>
                                 삭제
                             </button>
                         </>
@@ -306,9 +323,10 @@ const TacticsEditor = ({ user, tacticId, initialData, onBack, isMobile, isStanda
                     transformOrigin: '0 0',
                     width: '100%', height: '100%', position: 'relative'
                 }}>
+                    {/* Darker Grid Background */}
                     <div style={{
                         position: 'absolute', top: -5000, left: -5000, width: 10000, height: 10000,
-                        backgroundImage: 'radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px)',
+                        backgroundImage: 'radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px)',
                         backgroundSize: '40px 40px', pointerEvents: 'none'
                     }} />
 
@@ -322,11 +340,13 @@ const TacticsEditor = ({ user, tacticId, initialData, onBack, isMobile, isStanda
                                 width: el.width || 'auto', height: el.height || 'auto',
                                 padding: '10px',
                                 border: selectedId === el.id ? '2px solid var(--accent-color)' : '1px solid transparent',
-                                borderRadius: '8px',
+                                borderRadius: '12px',
                                 userSelect: 'none', cursor: 'move',
                                 transform: selectedId === el.id ? 'scale(1.02)' : 'scale(1)',
                                 transition: isDraggingElement && selectedId === el.id ? 'none' : 'transform 0.1s',
-                                background: el.type === 'text' ? 'transparent' : 'rgba(0,0,0,0.2)'
+                                background: el.type === 'text' ? 'transparent' : 'rgba(30, 30, 40, 0.6)',
+                                backdropFilter: el.type !== 'text' ? 'blur(8px)' : 'none',
+                                boxShadow: el.type !== 'text' ? '0 4px 20px rgba(0,0,0,0.3)' : 'none'
                             }}>
 
                             {/* TEXT ELEMENT */}
@@ -341,11 +361,11 @@ const TacticsEditor = ({ user, tacticId, initialData, onBack, isMobile, isStanda
                                         onPointerDown={e => e.stopPropagation()} // Stop drag
                                         style={{
                                             background: 'rgba(0,0,0,0.5)', border: '1px solid var(--accent-color)', color: 'white',
-                                            fontSize: '1.2rem', padding: '4px', width: '200px', borderRadius: '4px'
+                                            fontSize: '1.2rem', padding: '8px', width: '200px', borderRadius: '8px', outline: 'none'
                                         }}
                                     />
                                 ) : (
-                                    <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'white', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>{el.content}</span>
+                                    <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'white', textShadow: '0 2px 4px rgba(0,0,0,0.8)', padding: '5px' }}>{el.content}</span>
                                 )
                             )}
 
@@ -354,14 +374,15 @@ const TacticsEditor = ({ user, tacticId, initialData, onBack, isMobile, isStanda
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                     <div style={{
                                         width: '50px', height: '50px', borderRadius: '50%',
-                                        background: el.type === 'npc' ? '#4ade80' : '#ef4444',
+                                        background: el.type === 'npc' ? 'linear-gradient(135deg, #4ade80, #22c55e)' : 'linear-gradient(135deg, #ef4444, #dc2626)',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
+                                        boxShadow: '0 4px 10px rgba(0,0,0,0.4)',
+                                        border: '2px solid rgba(255,255,255,0.2)'
                                     }}>
-                                        {el.type === 'npc' ? <User size={30} color="#1a1a1a" /> : <Skull size={30} color="white" />}
+                                        {el.type === 'npc' ? <User size={28} color="white" /> : <Skull size={28} color="white" />}
                                     </div>
-                                    <span style={{ fontSize: '0.8rem', marginTop: '4px', background: 'rgba(0,0,0,0.6)', color: 'white', padding: '2px 6px', borderRadius: '4px' }}>
-                                        {el.type === 'npc' ? 'NPC' : 'ENEMY'}
+                                    <span style={{ fontSize: '0.75rem', marginTop: '6px', background: 'rgba(0,0,0,0.8)', color: 'white', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold' }}>
+                                        {el.type === 'npc' ? '전우' : '적군'}
                                     </span>
                                 </div>
                             )}
@@ -371,13 +392,14 @@ const TacticsEditor = ({ user, tacticId, initialData, onBack, isMobile, isStanda
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                     <div style={{
                                         width: '50px', height: '50px', borderRadius: '50%',
-                                        background: '#3b82f6', border: '2px solid white',
+                                        background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                                        border: '2px solid rgba(255,255,255,0.2)',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        boxShadow: '0 0 15px rgba(59, 130, 246, 0.5)'
+                                        boxShadow: '0 0 15px rgba(59, 130, 246, 0.4)'
                                     }}>
-                                        <Users size={28} color="white" />
+                                        <Users size={26} color="white" />
                                     </div>
-                                    <span style={{ fontSize: '0.8rem', marginTop: '4px', background: 'rgba(0,0,0,0.6)', color: 'white', padding: '2px 6px', borderRadius: '4px' }}>
+                                    <span style={{ fontSize: '0.75rem', marginTop: '6px', background: 'rgba(0,0,0,0.8)', color: 'white', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold' }}>
                                         파티원
                                     </span>
                                 </div>
@@ -416,14 +438,15 @@ const TacticsEditor = ({ user, tacticId, initialData, onBack, isMobile, isStanda
 
             {/* Bottom Toolbar */}
             <div style={{
-                position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)',
-                background: 'rgba(30,30,40,0.9)', backdropFilter: 'blur(15px)',
-                padding: '10px 20px', borderRadius: '50px',
-                display: 'flex', gap: '15px', border: '1px solid rgba(255,255,255,0.2)',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.5)', zIndex: 101,
-                overflowX: 'auto', maxWidth: '95vw'
+                position: 'absolute', bottom: '30px', left: '50%', transform: 'translateX(-50%)',
+                background: 'rgba(20,20,30,0.7)', backdropFilter: 'blur(20px) saturate(180%)',
+                padding: '8px 12px', borderRadius: '24px',
+                display: 'flex', gap: '8px', border: '1px solid rgba(255,255,255,0.1)',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.4)', zIndex: 101,
+                overflowX: 'auto', maxWidth: '90vw'
             }}>
                 <ToolButton icon={MousePointer} active={mode === 'select'} onClick={() => setMode('select')} label="선택" />
+                <div style={{ width: '1px', background: 'rgba(255,255,255,0.1)', margin: '0 5px' }} />
                 <ToolButton icon={Type} active={mode === 'text'} onClick={() => addElement('text')} label="텍스트" />
                 <ToolButton icon={Users} active={mode === 'member'} onClick={() => addElement('member')} label="파티원" />
                 <ToolButton icon={User} active={mode === 'npc'} onClick={() => addElement('npc')} label="NPC" />

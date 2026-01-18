@@ -10,7 +10,7 @@ import TacticsBoard from '../../features/tactics/TacticsBoard';
 import SurvivorsModal from '../../features/SurvivorsModal';
 import { db } from '../../lib/firebase';
 import { doc, updateDoc, serverTimestamp, collection, query, where, onSnapshot } from 'firebase/firestore';
-import { Users } from 'lucide-react';
+import { Users, Sword, Music, Heart, Leaf, Zap, Shield, Target, Ghost, Flame, Skull, Wand2, Axe } from 'lucide-react';
 
 const Layout = () => {
     const [activeTab, setActiveTab] = useState('home');
@@ -197,7 +197,22 @@ const Layout = () => {
                         cursor: 'pointer'
                     }}
                 >
-                    <Users size={20} color="white" />
+                    {(() => {
+                        const cls = user?.className || '';
+                        if (cls.includes('바바리안')) return <Axe size={20} color="white" />;
+                        if (cls.includes('바드')) return <Music size={20} color="white" />;
+                        if (cls.includes('클레릭')) return <Heart size={20} color="white" />;
+                        if (cls.includes('드루이드')) return <Leaf size={20} color="white" />;
+                        if (cls.includes('파이터')) return <Sword size={20} color="white" />;
+                        if (cls.includes('몽크')) return <Zap size={20} color="white" />;
+                        if (cls.includes('팔라딘')) return <Shield size={20} color="white" />;
+                        if (cls.includes('레인저')) return <Target size={20} color="white" />;
+                        if (cls.includes('로그')) return <Ghost size={20} color="white" />;
+                        if (cls.includes('소서러')) return <Flame size={20} color="white" />;
+                        if (cls.includes('워락')) return <Skull size={20} color="white" />;
+                        if (cls.includes('위자드')) return <Wand2 size={20} color="white" />;
+                        return <Users size={20} color="white" />;
+                    })()}
                 </div>
             )}
 
