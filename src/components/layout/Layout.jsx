@@ -62,7 +62,7 @@ const Layout = () => {
     }
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-color)', color: 'white' }}>
+        <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg-color)', color: 'white' }}>
             <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} isMobile={isMobile} user={user} />
 
             <main style={{

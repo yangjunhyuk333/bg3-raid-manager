@@ -53,11 +53,13 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
         return (
             <nav className="glass" style={{
                 position: 'fixed', bottom: 0, left: 0, right: 0,
-                height: '70px', zIndex: 1000,
-                display: 'flex', justifyContent: 'space-evenly', alignItems: 'center',
-                borderRadius: 0, borderTop: '1px solid rgba(255,255,255,0.1)',
-                backdropFilter: 'blur(20px)', background: 'rgba(0,0,0,0.9)',
-                paddingBottom: 'safe-area-inset-bottom' // iPhone home bar support
+                height: '75px', zIndex: 1000,
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                borderRadius: '16px 16px 0 0', // Rounded top corners
+                borderTop: '1px solid rgba(255,255,255,0.15)',
+                backdropFilter: 'blur(25px)', background: 'rgba(10, 10, 20, 0.95)',
+                padding: '0 10px',
+                paddingBottom: 'safe-area-inset-bottom'
             }}>
                 {mobileItems.map((item) => {
                     const Icon = item.icon;
@@ -67,13 +69,17 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
                             key={item.id}
                             onClick={() => setActiveTab(item.id)}
                             style={{
-                                background: 'transparent', border: 'none',
-                                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px',
+                                background: isActive ? 'rgba(255,255,255,0.1)' : 'transparent',
+                                borderRadius: '12px',
+                                border: 'none',
+                                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                gap: '4px',
                                 color: isActive ? 'var(--accent-color)' : 'rgba(255,255,255,0.5)',
-                                padding: '10px', flex: 1, minWidth: '60px'
+                                height: '55px', flex: 1, margin: '0 2px'
                             }}
                         >
-                            <Icon size={24} /> {/* Larger Icons */}
+                            <Icon size={isActive ? 26 : 24} strokeWidth={isActive ? 2.5 : 2} />
+                            {isActive && <span style={{ fontSize: '10px' }}>{item.label}</span>}
                         </button>
                     );
                 })}
@@ -81,13 +87,17 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
                 <button
                     onClick={() => setActiveTab('profile')}
                     style={{
-                        background: 'transparent', border: 'none',
-                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px',
+                        background: activeTab === 'profile' ? 'rgba(255,255,255,0.1)' : 'transparent',
+                        borderRadius: '12px',
+                        border: 'none',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                        gap: '4px',
                         color: activeTab === 'profile' ? 'var(--accent-color)' : 'rgba(255,255,255,0.5)',
-                        padding: '10px', flex: 1, minWidth: '60px'
+                        height: '55px', flex: 1, margin: '0 2px'
                     }}
                 >
-                    <Users size={24} />
+                    <Users size={activeTab === 'profile' ? 26 : 24} strokeWidth={activeTab === 'profile' ? 2.5 : 2} />
+                    {activeTab === 'profile' && <span style={{ fontSize: '10px' }}>프로필</span>}
                 </button>
             </nav>
         );
