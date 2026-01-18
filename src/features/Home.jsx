@@ -70,7 +70,7 @@ const Home = ({ user, setActiveTab, isMobile }) => {
     );
 
     return (
-        <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '30px' }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: isMobile ? '15px' : '30px' }}>
             {/* Hero Section */}
             <div className="glass-panel" style={{
                 padding: isMobile ? '30px 20px' : '40px', // Adjusted padding
@@ -79,7 +79,7 @@ const Home = ({ user, setActiveTab, isMobile }) => {
             }}>
                 {/* Logo added for Mobile/Desktop unification or just mobile? User said "put a logo above that area" */}
                 {isMobile && (
-                    <div className="logo-wrapper" style={{ position: 'relative', width: '120px', margin: '0 auto 20px' }}>
+                    <div className="logo-wrapper" style={{ position: 'relative', width: '180px', margin: '0 auto 20px' }}>
                         <img src={logo} alt="BG3" style={{ width: '100%' }} onClick={() => window.location.reload()} />
                         <div className="logo-shine" style={{ WebkitMaskImage: `url(${logo})`, maskImage: `url(${logo})` }} />
                     </div>
@@ -95,7 +95,7 @@ const Home = ({ user, setActiveTab, isMobile }) => {
             </div>
 
             {/* Quick Actions Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? '10px' : '20px' }}>
                 <QuickCard
                     icon={Calendar}
                     title="레이드 일정"
@@ -120,7 +120,7 @@ const Home = ({ user, setActiveTab, isMobile }) => {
             </div>
 
             {/* Recent Schedule & Status */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '10px' : '20px' }}>
                 {/* Upcoming Raids */}
                 <div className="glass-panel" style={{ padding: '20px' }}>
                     <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 20px' }}>
