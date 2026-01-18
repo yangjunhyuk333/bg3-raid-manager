@@ -73,7 +73,7 @@ const Layout = () => {
                 position: 'relative'
             }}>
                 <div style={{
-                    padding: isMobile ? '20px 20px 100px' : '40px', // Reduced top padding on mobile since header is gone
+                    padding: isMobile ? '80px 20px 100px' : '40px', // Increased top padding for mobile header (60px + gap)
                     maxWidth: activeTab === 'chat' ? '100%' : '1200px', // Full width for chat
                     margin: '0 auto',
                     minHeight: '100%'

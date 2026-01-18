@@ -120,6 +120,18 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
 
         return (
             <>
+                {/* Mobile Top Header with Logo */}
+                <div className="glass" style={{
+                    position: 'fixed', top: 0, left: 0, right: 0,
+                    height: '60px', zIndex: 1000,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    borderBottom: '1px solid rgba(255,255,255,0.1)',
+                    backdropFilter: 'blur(15px)', background: 'rgba(10, 10, 20, 0.8)'
+                }}>
+                    <img src={logo} alt="BG3 Logo" style={{ height: '35px' }} />
+                </div>
+
+                {/* Mobile Bottom Nav */}
                 <nav className="glass" style={{
                     position: 'fixed', bottom: 0, left: 0, right: 0,
                     height: '75px', zIndex: 1000,
