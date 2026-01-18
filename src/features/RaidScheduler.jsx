@@ -21,7 +21,10 @@ const RaidScheduler = ({ user }) => {
     const [tempTimeSlot, setTempTimeSlot] = useState('');
 
     useEffect(() => {
-        if (!user?.campId) return;
+        if (!user?.campId) {
+            setLoading(false);
+            return;
+        }
 
         const q = query(
             collection(db, "schedules"),
@@ -161,9 +164,23 @@ const RaidScheduler = ({ user }) => {
                     {date.toLocaleDateString()} 일정 목록
                 </h3>
 
-                {loading ? <p>로딩 중...</p> :
+                {loading ? <p style={{ textAlign: 'center', opacity: 0.5, padding: '40px' }}>일정을 불러오는 중입니다...</p> :
                     filteredSchedules.length === 0 ? (
-                        <div style={{ textAlign: 'center', opacity: 0.5, padding: '20px' }}>이 날짜에 등록된 일정이 없습니다.</div>
+                        <div style={{ textAlign: 'center', padding: '40px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                            <p style={{ opacity: 0.5, marginBottom: '15px' }}>이 날짜에는 예정된 모험이 없습니다.</p>
+                            <button
+                                onClick={() => {
+                                    setNewItem(prev => ({ ...prev, date: selectedDateStr }));
+                                    setShowModal(true);
+                                }}
+                                style={{
+                                    background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)',
+                                    padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem'
+                                }}
+                            >
+                                + 새 일정 만들기
+                            </button>
+                        </div>
                     ) : (
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '15px' }}>
                             {filteredSchedules.map((item) => (

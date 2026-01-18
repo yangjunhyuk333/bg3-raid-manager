@@ -3,7 +3,7 @@ import { Send, User, Bot, Image as ImageIcon, X } from 'lucide-react';
 import { db } from '../lib/firebase';
 import { collection, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp, where } from 'firebase/firestore';
 
-const ChatRoom = ({ user }) => {
+const ChatRoom = ({ user, isMobile }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [imagePreview, setImagePreview] = useState(null); // Base64 string
@@ -90,7 +90,15 @@ const ChatRoom = ({ user }) => {
     }
 
     return (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: 0, position: 'absolute', inset: 0 }}>
+        <div style={{
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            padding: 0,
+            position: 'absolute',
+            top: 0, left: 0, right: 0,
+            bottom: isMobile ? '80px' : 0 // Ensure space for mobile bottom nav
+        }}>
             <div style={{ padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
                 <h2 style={{ fontSize: '1.2rem', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Bot color="#4fd1c5" /> 파티 작전 회의실

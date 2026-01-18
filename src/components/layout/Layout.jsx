@@ -46,14 +46,14 @@ const Layout = () => {
 
     const renderContent = () => {
         switch (activeTab) {
-            case 'home': return <Home user={user} setActiveTab={setActiveTab} />;
-            case 'chat': return <ChatRoom user={user} />;
-            case 'calendar': return <RaidScheduler user={user} />;
-            case 'tactics': return <TacticsBoard user={user} />;
-            case 'save': return <SaveAnalyzer user={user} />;
-            case 'profile': return <ProfileSetup onComplete={handleProfileComplete} initialData={user} />;
-            case 'admin': return user?.isAdmin ? <CampManagement user={user} /> : <Home user={user} />;
-            default: return <Home user={user} />;
+            case 'home': return <Home user={user} setActiveTab={setActiveTab} isMobile={isMobile} />;
+            case 'chat': return <ChatRoom user={user} isMobile={isMobile} />;
+            case 'calendar': return <RaidScheduler user={user} isMobile={isMobile} />;
+            case 'tactics': return <TacticsBoard user={user} isMobile={isMobile} />;
+            case 'save': return <SaveAnalyzer user={user} isMobile={isMobile} />;
+            case 'profile': return <ProfileSetup onComplete={handleProfileComplete} initialData={user} isMobile={isMobile} />;
+            case 'admin': return user?.isAdmin ? <CampManagement user={user} isMobile={isMobile} /> : <Home user={user} setActiveTab={setActiveTab} isMobile={isMobile} />;
+            default: return <Home user={user} setActiveTab={setActiveTab} isMobile={isMobile} />;
         }
     };
 
