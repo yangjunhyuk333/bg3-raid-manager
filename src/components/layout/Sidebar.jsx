@@ -128,7 +128,12 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
                     borderBottom: '1px solid rgba(255,255,255,0.1)',
                     backdropFilter: 'blur(15px)', background: 'rgba(10, 10, 20, 0.8)'
                 }}>
-                    <img src={logo} alt="BG3 Logo" style={{ height: '35px' }} />
+                    <img
+                        src={logo}
+                        alt="BG3 Logo"
+                        style={{ height: '35px', cursor: 'pointer' }}
+                        onClick={() => window.location.reload()}
+                    />
                 </div>
 
                 {/* Mobile Bottom Nav */}
@@ -219,7 +224,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
                 )}
 
                 {/* Final User Logo with Shine Effect */}
-                <div className="logo-wrapper" style={{ position: 'relative', width: '100%', marginBottom: '10px' }}>
+                <div className="logo-wrapper" style={{ position: 'relative', width: '100%', marginBottom: '10px', cursor: 'pointer' }} onClick={() => window.location.reload()}>
                     <img
                         src={logo}
                         alt="BG3"
