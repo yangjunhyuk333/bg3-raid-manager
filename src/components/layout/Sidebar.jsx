@@ -131,7 +131,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
                     height: 'calc(65px + env(safe-area-inset-bottom))',
                     zIndex: 1000,
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    borderRadius: '20px 20px 0 0',
+                    borderRadius: 0, // Removed rounding as per user request
                     borderTop: '1px solid rgba(255,255,255,0.15)',
                     backdropFilter: 'blur(25px)', background: 'rgba(10, 10, 20, 0.95)',
                     padding: '0 20px env(safe-area-inset-bottom)',
