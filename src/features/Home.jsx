@@ -79,7 +79,7 @@ const Home = ({ user, setActiveTab, isMobile, onlineUsersCount, setShowSurvivors
                 </div>
             )}
 
-            {/* Hero Section: Glass Pill Card */}
+            {/* Hero Section: Glass Pill Card (Text Only) */}
             <div style={{
                 width: '100%',
                 minHeight: '90px',
@@ -88,51 +88,18 @@ const Home = ({ user, setActiveTab, isMobile, onlineUsersCount, setShowSurvivors
                 backdropFilter: 'blur(20px)',
                 border: '1px solid rgba(255,255,255,0.1)',
                 boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', // Centered Text
                 padding: isMobile ? '20px 25px' : '0 40px',
-                textAlign: 'left'
+                textAlign: 'center'
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <div style={{
-                        width: isMobile ? '50px' : '60px', height: isMobile ? '50px' : '60px',
-                        borderRadius: '50%', background: 'linear-gradient(135deg, #ffd700, #ffb700)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 4px 15px rgba(255, 215, 0, 0.3)',
-                        color: '#1a1a2e'
-                    }}>
-                        <Users size={isMobile ? 24 : 32} strokeWidth={2.5} />
-                    </div>
-                    <div>
-                        <h1 style={{ margin: 0, fontSize: isMobile ? '1.2rem' : '1.6rem', fontWeight: 'bold' }}>
-                            어서오세요, <span style={{ color: '#ffd700' }}>{user.nickname}</span>님
-                        </h1>
-                        <p style={{ margin: '4px 0 0', fontSize: '0.85rem', opacity: 0.6 }}>
-                            발더스 게이트 원정대에 오신 것을 환영합니다.
-                        </p>
-                    </div>
+                <div>
+                    <h1 style={{ margin: 0, fontSize: isMobile ? '1.2rem' : '1.6rem', fontWeight: 'bold' }}>
+                        어서오세요, <span style={{ color: '#ffd700' }}>{user.nickname}</span>님
+                    </h1>
+                    <p style={{ margin: '4px 0 0', fontSize: '0.85rem', opacity: 0.6 }}>
+                        발더스 게이트 원정대에 오신 것을 환영합니다.
+                    </p>
                 </div>
-
-                <button
-                    onClick={() => {
-                        if (confirm('로그아웃 하시겠습니까?')) {
-                            localStorage.clear();
-                            window.location.reload();
-                        }
-                    }}
-                    style={{
-                        width: '50px', height: '50px', borderRadius: '50%',
-                        background: 'rgba(255, 50, 50, 0.1)',
-                        border: '1px solid rgba(255, 50, 50, 0.2)',
-                        color: '#fca5a5',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: 'pointer', transition: 'all 0.2s',
-                        marginLeft: '15px'
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255, 50, 50, 0.2)'; e.currentTarget.style.transform = 'scale(1.1)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255, 50, 50, 0.1)'; e.currentTarget.style.transform = 'scale(1)'; }}
-                >
-                    <LogOut size={20} />
-                </button>
             </div>
 
             {/* Mobile: Online Users Pill (Moved here from Floating Top Left as desired) */}

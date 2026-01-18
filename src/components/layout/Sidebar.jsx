@@ -309,49 +309,56 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
                 })}
             </nav>
 
+            {/* Bottom Profile Pill */}
             <div
                 onClick={() => setShowProfileView(true)}
                 style={{
                     marginTop: 'auto',
-                    display: 'flex', alignItems: 'center', gap: '10px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     cursor: 'pointer', transition: 'all 0.2s',
-                    padding: '12px', borderRadius: '12px',
-                    background: 'rgba(0, 0, 0, 0.3)',
+                    padding: '8px 8px 8px 12px', // Compact padding
+                    borderRadius: '50px', // Pill Shape
+                    background: 'rgba(20, 20, 35, 0.6)', // Glass Dark
+                    backdropFilter: 'blur(20px)',
                     border: '1px solid rgba(255, 255, 255, 0.1)',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+                    height: '60px'
                 }}
                 onMouseEnter={e => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-                    e.currentTarget.style.border = '1px solid var(--accent-color)';
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
                 }}
                 onMouseLeave={e => {
-                    e.currentTarget.style.background = 'rgba(0, 0, 0, 0.3)';
-                    e.currentTarget.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+                    e.currentTarget.style.background = 'rgba(20, 20, 35, 0.6)';
+                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
                 }}
                 title="프로필 보기"
             >
-                <div style={{
-                    width: '40px', height: '40px', borderRadius: '50%', background: 'var(--accent-color)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                }}>
-                    <Users size={20} color="white" />
-                </div>
-                <div style={{ flex: 1, overflow: 'hidden' }}>
-                    <div style={{ fontWeight: 'bold', fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{
+                        width: '40px', height: '40px', borderRadius: '50%', background: 'var(--accent-color)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
+                    }}>
+                        <Users size={20} color="white" />
+                    </div>
+                    <div style={{ fontWeight: 'bold', fontSize: '0.95rem', color: 'white' }}>
                         {user.nickname}
                     </div>
                 </div>
+
                 <button
                     onClick={(e) => { e.stopPropagation(); setShowLogoutConfirm(true); }}
                     style={{
+                        width: '40px', height: '40px',
                         background: 'rgba(248, 113, 113, 0.15)',
-                        border: '1px solid rgba(248, 113, 113, 0.4)',
-                        borderRadius: '8px',
-                        padding: '10px',
+                        border: '1px solid rgba(248, 113, 113, 0.3)',
+                        borderRadius: '50%', // Circle Button
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        cursor: 'pointer', color: '#f87171', fontWeight: 'bold'
+                        color: '#fca5a5', cursor: 'pointer', transition: 'all 0.2s'
                     }}
-                    title="로그아웃"
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(248, 113, 113, 0.25)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(248, 113, 113, 0.15)'}
                 >
                     <LogOut size={16} />
                 </button>
