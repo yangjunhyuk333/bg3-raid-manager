@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'BG3 Raid Manager',
-        short_name: 'RG3 Manager',
+        name: '발더스게이트 원정대',
+        short_name: '발더스 원정대',
         description: '발더스 게이트 3 멀티플레이 파티 관리',
         theme_color: '#0a0a10',
         background_color: '#0a0a10',
