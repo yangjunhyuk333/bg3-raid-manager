@@ -11,7 +11,115 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
     const [onlineUsersCount, setOnlineUsersCount] = React.useState(0);
     const [maxMembers, setMaxMembers] = React.useState(4);
     const isAdmin = user?.isAdmin === true;
+    // Profile Modals State
+    const [showProfileView, setShowProfileView] = React.useState(false);
     const [showProfileEdit, setShowProfileEdit] = React.useState(false);
+
+    // ... (rest of state)
+
+    // ... inside Sidebar return ...
+
+    {/* Sidebar Footer: User Profile & Logout */ }
+    <div
+        onClick={() => setShowProfileView(true)} // Changed to open View Modal
+        style={{
+            marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.1)',
+            display: 'flex', alignItems: 'center', gap: '10px',
+            cursor: 'pointer', transition: 'background 0.2s',
+            padding: '10px', borderRadius: '12px'
+        }}
+    // ... styles
+    >
+        {/* ... user icon and name ... */}
+    </div>
+
+    {/* Logout Confirmation Modal - Portal to Body */ }
+    {
+        showLogoutConfirm && createPortal(
+            // ... (existing logout modal)
+            <div className="modal-overlay" onClick={() => setShowLogoutConfirm(false)}>
+                {/* ... */}
+            </div>,
+            document.body
+        )
+    }
+
+    {/* Profile View Modal - Portal to Body (NEW) */ }
+    {
+        showProfileView && createPortal(
+            <div className="modal-overlay" onClick={() => setShowProfileView(false)}>
+                <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', padding: '30px', textAlign: 'center' }}>
+                    <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--accent-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: '0 0 20px rgba(212, 160, 23, 0.4)' }}>
+                        <Users size={40} color="white" />
+                    </div>
+                    <h3 style={{ fontSize: '1.6rem', marginBottom: '5px', fontWeight: 'bold' }}>{user?.nickname || '모험가'}</h3>
+                    <p style={{ color: 'var(--accent-color)', marginBottom: '20px', fontSize: '0.9rem', fontWeight: 'bold' }}>
+                        {user?.className || 'Classless'} <span style={{ opacity: 0.5 }}>|</span> {user?.role === 'Admin' ? '대장 (관리자)' : '대원'}
+                    </p>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '25px', textAlign: 'left' }}>
+                        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px' }}>
+                            <p style={{ fontSize: '0.75rem', opacity: 0.6, marginBottom: '4px' }}>직업</p>
+                            <p style={{ fontWeight: 'bold' }}>{user?.className || '-'}</p>
+                        </div>
+                        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px' }}>
+                            <p style={{ fontSize: '0.75rem', opacity: 0.6, marginBottom: '4px' }}>신분</p>
+                            <p style={{ fontWeight: 'bold' }}>{user?.role === 'Admin' ? '관리자' : '일반 대원'}</p>
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={() => {
+                            setShowProfileView(false);
+                            setShowProfileEdit(true);
+                        }}
+                        style={{
+                            width: '100%', padding: '14px', borderRadius: '12px',
+                            background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
+                            color: 'white', fontWeight: 'bold', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                            transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                    >
+                        < Settings size={18} />
+                        프로필 수정하기
+                    </button>
+                </div>
+            </div>,
+            document.body
+        )
+    }
+
+    {/* Profile Edit Modal - Portal to Body */ }
+    {
+        showProfileEdit && createPortal(
+            <div className="modal-overlay" onClick={() => setShowProfileEdit(false)}>
+                <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', padding: '30px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                        <h3 style={{ fontSize: '1.4rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <Users size={24} color="var(--accent-color)" />
+                            프로필 수정
+                        </h3>
+                        <button onClick={() => setShowProfileEdit(false)} style={{ background: 'transparent', color: 'rgba(255,255,255,0.5)' }}>x</button>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                        {/* ... (existing fields) ... */}
+                        {/* ... (editName, editClass, editRole inputs) ... */}
+                        <button
+                            onClick={handleProfileUpdate}
+                        // ... style
+                        >
+                            저장하기
+                        </button>
+                    </div>
+                </div>
+            </div>,
+            document.body
+        )
+    }
     const [showAdminReset, setShowAdminReset] = React.useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
 
