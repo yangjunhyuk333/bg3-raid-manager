@@ -1,22 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, User, Bot, Image as ImageIcon, X } from 'lucide-react';
+import { Send, User, Bot, Image as ImageIcon, X, Loader2 } from 'lucide-react';
 import { db } from '../lib/firebase';
-import { collection, addDoc, query, orderBy, onSnapshot, limit, serverTimestamp, where } from 'firebase/firestore';
+import { collection, addDoc, query, onSnapshot, limit, serverTimestamp, where, doc, setDoc } from 'firebase/firestore';
 
 const ChatRoom = ({ user, isMobile }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [imagePreview, setImagePreview] = useState(null); // Base64 string
     const [loading, setLoading] = useState(true);
+    const [typingUsers, setTypingUsers] = useState([]);
+
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
+    const lastTypingRef = useRef(0);
 
+    // 1. Message Listener
     useEffect(() => {
         if (!user?.campId) return;
 
-        // Firestore 실시간 리스너 (CampId 필터링)
-        // Firestore 실시간 리스너 (CampId 필터링)
-        // orderBy를 제거하여 복합 색인(Composite Index) 없이도 동작하도록 수정 (클라이언트 정렬)
         const q = query(
             collection(db, "chats"),
             where("campId", "==", user.campId),
@@ -29,10 +30,7 @@ const ChatRoom = ({ user, isMobile }) => {
                 ...doc.data(),
                 timestamp: doc.data().timestamp?.toDate().toISOString() || new Date().toISOString()
             }));
-
-            // Client-side Sort
             msgs.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-
             setMessages(msgs);
             setLoading(false);
         });
@@ -40,14 +38,44 @@ const ChatRoom = ({ user, isMobile }) => {
         return () => unsubscribe();
     }, [user?.campId]);
 
+    // 2. Typing Listener
+    useEffect(() => {
+        if (!user?.campId) return;
+
+        // Listen to all typing statuses in this camp
+        const q = query(collection(db, "camps", user.campId, "typing"));
+
+        const unsub = onSnapshot(q, (snapshot) => {
+            const now = Date.now();
+            const users = snapshot.docs
+                .map(d => ({ id: d.id, ...d.data() }))
+                .filter(d => d.id !== user.id && d.timestamp && (now - d.timestamp.toMillis() < 4000)); // 4s threshold
+
+            setTypingUsers(users);
+        });
+
+        // Prune stale typing users locally every second
+        const pruneInterval = setInterval(() => {
+            setTypingUsers(prev => {
+                const now = Date.now();
+                return prev.filter(u => u.timestamp?.toMillis && (now - u.timestamp.toMillis() < 4000));
+            });
+        }, 1000);
+
+        return () => {
+            unsub();
+            clearInterval(pruneInterval);
+        };
+    }, [user?.campId, user?.id]);
+
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages]);
+    }, [messages, typingUsers]); // Scroll when typing appears too
 
     const handleImageSelect = (e) => {
         const file = e.target.files[0];
         if (file) {
-            if (file.size > 500 * 1024) { // 500KB Limit
+            if (file.size > 500 * 1024) {
                 alert("이미지 크기는 500KB 이하여야 합니다.");
                 return;
             }
@@ -56,6 +84,26 @@ const ChatRoom = ({ user, isMobile }) => {
                 setImagePreview(reader.result);
             };
             reader.readAsDataURL(file);
+        }
+    };
+
+    const handleInputChange = async (e) => {
+        const val = e.target.value;
+        setInput(val);
+
+        // Throttle typing updates to Firestore (every 2s)
+        const now = Date.now();
+        if (val.trim() && now - lastTypingRef.current > 2000 && user?.campId) {
+            lastTypingRef.current = now;
+            try {
+                // Defines user as typing
+                await setDoc(doc(db, "camps", user.campId, "typing", user.id), {
+                    nickname: user.nickname,
+                    timestamp: serverTimestamp() // Server time is best for syncing
+                });
+            } catch (err) {
+                console.error("Typing status error", err);
+            }
         }
     };
 
@@ -72,11 +120,11 @@ const ChatRoom = ({ user, isMobile }) => {
         try {
             await addDoc(collection(db, "chats"), {
                 text: textToSend,
-                image: imageToSend, // Base64
+                image: imageToSend,
                 sender: user.nickname,
                 uid: user.id,
                 userClass: user.className || 'Unknown',
-                campId: user.campId, // Scope to Camp
+                campId: user.campId,
                 timestamp: serverTimestamp(),
             });
         } catch (error) {
@@ -98,7 +146,7 @@ const ChatRoom = ({ user, isMobile }) => {
             top: isMobile ? 'env(safe-area-inset-top)' : 0,
             left: isMobile ? 0 : 0,
             right: isMobile ? 0 : 0,
-            bottom: isMobile ? 'calc(65px + env(safe-area-inset-bottom))' : 0,  // Matched to Sidebar height
+            bottom: isMobile ? 'calc(65px + env(safe-area-inset-bottom))' : 0,
             background: isMobile ? 'rgba(20, 20, 30, 0.95)' : 'transparent',
             zIndex: 50
         }}>
@@ -161,6 +209,17 @@ const ChatRoom = ({ user, isMobile }) => {
                         </div>
                     );
                 })}
+
+                {/* Typing Indicator */}
+                {typingUsers.length > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.7, padding: '0 10px', marginTop: '5px' }}>
+                        <Loader2 size={14} className="spin" />
+                        <span style={{ fontSize: '0.8rem', color: '#a78bfa' }}>
+                            {typingUsers.map(u => u.nickname).join(', ')}님이 입력 중...
+                        </span>
+                    </div>
+                )}
+
                 <div ref={messagesEndRef} />
             </div>
 
@@ -203,7 +262,7 @@ const ChatRoom = ({ user, isMobile }) => {
                     <input
                         type="text"
                         value={input}
-                        onChange={(e) => setInput(e.target.value)}
+                        onChange={handleInputChange}
                         placeholder="작전을 전달하세요..."
                         style={{
                             flex: 1, padding: '12px', borderRadius: '12px',

@@ -263,17 +263,25 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
                 })}
             </nav>
 
-            {/* Sidebar Footer: User Profile & Logout */}
             <div
                 onClick={() => setShowProfileView(true)}
                 style={{
-                    marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.1)',
+                    marginTop: 'auto',
                     display: 'flex', alignItems: 'center', gap: '10px',
-                    cursor: 'pointer', transition: 'background 0.2s',
-                    padding: '10px', borderRadius: '12px'
+                    cursor: 'pointer', transition: 'all 0.2s',
+                    padding: '12px', borderRadius: '12px',
+                    background: 'rgba(0, 0, 0, 0.3)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
                 }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                onMouseEnter={e => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                    e.currentTarget.style.border = '1px solid var(--accent-color)';
+                }}
+                onMouseLeave={e => {
+                    e.currentTarget.style.background = 'rgba(0, 0, 0, 0.3)';
+                    e.currentTarget.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+                }}
                 title="프로필 보기"
             >
                 <div style={{
