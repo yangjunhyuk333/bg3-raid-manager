@@ -120,35 +120,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
 
         return (
             <>
-                {/* Mobile Top Header with Logo */}
-                <div className="glass" style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: 'calc(60px + env(safe-area-inset-top))',
-                    paddingTop: 'env(safe-area-inset-top)',
-                    zIndex: 1000,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    borderBottom: '1px solid rgba(255,255,255,0.1)',
-                    backdropFilter: 'blur(15px)', background: 'rgba(10, 10, 20, 0.9)'
-                }}>
-                    <div className="logo-wrapper" style={{ position: 'relative', height: '35px', cursor: 'pointer' }} onClick={() => window.location.reload()}>
-                        <img
-                            src={logo}
-                            alt="BG3 Logo"
-                            style={{ height: '100%', width: 'auto' }}
-                        />
-                        <div
-                            className="logo-shine"
-                            style={{
-                                WebkitMaskImage: `url(${logo})`,
-                                maskImage: `url(${logo})`,
-                                backgroundSize: 'contain'
-                            }}
-                        />
-                    </div>
-                </div>
+                {/* Mobile Top Header Removed as per user request */}
 
                 {/* Mobile Bottom Nav */}
                 <nav className="glass" style={{

@@ -95,7 +95,7 @@ const ChatRoom = ({ user, isMobile }) => {
             flexDirection: 'column',
             padding: 0,
             position: isMobile ? 'fixed' : 'absolute',
-            top: isMobile ? 'calc(60px + env(safe-area-inset-top))' : 0,
+            top: isMobile ? 'env(safe-area-inset-top)' : 0,
             left: isMobile ? 0 : 0,
             right: isMobile ? 0 : 0,
             bottom: isMobile ? 'calc(75px + env(safe-area-inset-bottom))' : 0,  // Increased base to 75px

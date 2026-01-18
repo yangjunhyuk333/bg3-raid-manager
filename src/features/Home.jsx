@@ -3,7 +3,9 @@ import { Users, Calendar, MessageSquare, Activity, ArrowRight, CheckCircle2 } fr
 import { db } from '../lib/firebase';
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 
-const Home = ({ user, setActiveTab }) => {
+import logo from '../assets/logo.svg';
+
+const Home = ({ user, setActiveTab, isMobile }) => {
     const [recentRaids, setRecentRaids] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -71,14 +73,22 @@ const Home = ({ user, setActiveTab }) => {
         <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '30px' }}>
             {/* Hero Section */}
             <div className="glass-panel" style={{
-                padding: '40px',
+                padding: isMobile ? '30px 20px' : '40px', // Adjusted padding
                 background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
                 textAlign: 'center'
             }}>
-                <h1 style={{ fontSize: '2rem', marginBottom: '10px', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
+                {/* Logo added for Mobile/Desktop unification or just mobile? User said "put a logo above that area" */}
+                {isMobile && (
+                    <div className="logo-wrapper" style={{ position: 'relative', width: '120px', margin: '0 auto 20px' }}>
+                        <img src={logo} alt="BG3" style={{ width: '100%' }} onClick={() => window.location.reload()} />
+                        <div className="logo-shine" style={{ WebkitMaskImage: `url(${logo})`, maskImage: `url(${logo})` }} />
+                    </div>
+                )}
+
+                <h1 style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: '10px', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
                     어서오세요, <span style={{ color: 'var(--accent-color)' }}>{user?.nickname || '모험가'}</span>님
                 </h1>
-                <p style={{ opacity: 0.8, maxWidth: '600px', margin: '0 auto' }}>
+                <p style={{ opacity: 0.8, maxWidth: '600px', margin: '0 auto', fontSize: isMobile ? '0.9rem' : '1rem' }}>
                     발더스 게이트 원정대에 오신 것을 환영합니다. <br />
                     오늘의 모험을 시작하기 전에 일정을 확인하고 파티원들과 소통해보세요.
                 </p>

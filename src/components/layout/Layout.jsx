@@ -73,7 +73,7 @@ const Layout = () => {
                 position: 'relative'
             }}>
                 <div style={{
-                    padding: isMobile ? 'calc(80px + env(safe-area-inset-top)) 20px calc(80px + env(safe-area-inset-bottom))' : '40px',
+                    padding: isMobile ? 'calc(20px + env(safe-area-inset-top)) 20px calc(80px + env(safe-area-inset-bottom))' : '40px',
                     maxWidth: activeTab === 'chat' ? '100%' : '1200px',
                     margin: '0 auto',
                     minHeight: '100%'
