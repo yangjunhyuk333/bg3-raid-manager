@@ -11,7 +11,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
-      includeAssets: ['favicon.ico', 'app-icon.jpg'],
+      includeAssets: ['favicon.ico', 'app-icon.png'],
       manifest: {
         name: '발더스게이트 원정대',
         short_name: '발더스 원정대',
@@ -24,19 +24,19 @@ export default defineConfig({
         orientation: 'portrait',
         icons: [
           {
-            src: 'app-icon.jpg', // Relative path is safer with base
+            src: 'app-icon.png', // Relative path is safer with base
             sizes: '192x192',
-            type: 'image/jpeg'
+            type: 'image/png'
           },
           {
-            src: 'app-icon.jpg',
+            src: 'app-icon.png',
             sizes: '512x512',
-            type: 'image/jpeg'
+            type: 'image/png'
           },
           {
-            src: 'app-icon.jpg',
+            src: 'app-icon.png',
             sizes: '512x512',
-            type: 'image/jpeg',
+            type: 'image/png',
             purpose: 'any maskable'
           }
         ]
