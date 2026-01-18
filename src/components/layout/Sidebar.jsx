@@ -129,71 +129,50 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
 
         return (
             <>
-                {/* 1. Top Right Floating Actions (Chat & Save) */}
+                {/* 1. Floating Actions (Chat & Save) - Moved to Bottom Right */}
+                {/* Stacked vertically for better thumb reach */}
                 <div style={{
                     position: 'fixed',
-                    top: 'env(safe-area-inset-top)',
+                    bottom: 'calc(100px + env(safe-area-inset-bottom))',
                     right: '20px',
                     zIndex: 1001,
-                    marginTop: '15px',
                     display: 'flex',
+                    flexDirection: 'column', // Stack vertically
                     gap: '12px'
                 }}>
                     {/* Save Button */}
                     <button
                         onClick={() => setActiveTab('save')}
                         style={{
-                            width: '42px', height: '42px', borderRadius: '50%',
-                            background: activeTab === 'save' ? 'var(--accent-color)' : 'rgba(20, 20, 30, 0.6)',
-                            border: '1px solid rgba(255,255,255,0.1)',
+                            width: '45px', height: '45px', borderRadius: '50%',
+                            background: activeTab === 'save' ? 'var(--accent-color)' : 'rgba(20, 20, 30, 0.7)',
+                            border: '1px solid rgba(255,255,255,0.2)',
                             backdropFilter: 'blur(10px)',
                             color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+                            boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
                             transition: 'all 0.2s'
                         }}
                     >
-                        <FolderOpen size={18} />
+                        <FolderOpen size={20} />
                     </button>
 
                     {/* Chat Button */}
                     <button
                         onClick={() => setActiveTab('chat')}
                         style={{
-                            width: '42px', height: '42px', borderRadius: '50%',
-                            background: activeTab === 'chat' ? 'var(--accent-color)' : 'rgba(20, 20, 30, 0.6)',
-                            border: '1px solid rgba(255,255,255,0.1)',
+                            width: '45px', height: '45px', borderRadius: '50%',
+                            background: activeTab === 'chat' ? 'var(--accent-color)' : 'rgba(20, 20, 30, 0.7)',
+                            border: '1px solid rgba(255,255,255,0.2)',
                             backdropFilter: 'blur(10px)',
                             color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+                            boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
                             transition: 'all 0.2s'
                         }}
                     >
-                        <MessageSquare size={18} />
+                        <MessageSquare size={20} />
                     </button>
                 </div>
-
-                {/* 2. Top Left Floating Online Count */}
-                <div
-                    onClick={() => setShowSurvivors(true)}
-                    style={{
-                        position: 'fixed',
-                        top: 'env(safe-area-inset-top)',
-                        left: '20px',
-                        zIndex: 1001,
-                        marginTop: '15px',
-                        display: 'flex', alignItems: 'center', gap: '8px',
-                        padding: '8px 14px',
-                        background: 'rgba(20, 20, 30, 0.6)',
-                        backdropFilter: 'blur(10px)',
-                        borderRadius: '20px', // Pill
-                        fontSize: '0.8rem', border: '1px solid rgba(255,255,255,0.1)',
-                        cursor: 'pointer',
-                        boxShadow: '0 4px 10px rgba(0,0,0,0.2)'
-                    }}
-                >
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 5px #4ade80' }}></div>
-                    <span style={{ color: '#4ade80', fontWeight: 'bold' }}>{onlineUsersCount}명</span>
-                </div>
+                {/* Top Left Online Count Removed (Duplicate) */}
 
                 {/* 3. Bottom Floating Pill Navigation */}
                 <nav className="glass" style={{
