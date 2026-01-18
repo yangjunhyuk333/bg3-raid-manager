@@ -140,70 +140,220 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
     // Filter Profile tab from Desktop Menu
     const desktopMenuItems = menuItems.filter(item => item.id !== 'profile');
 
-    // 5. RENDER - MOBILE NAV
-    if (isMobile) {
-        // Mobile Layout: Bottom Navigation Bar Only (Clean Design)
+    // 5. RENDER - MODALS (Shared)
+    const renderModals = () => (
+        <>
+            {/* 1. Logout Confirmation Modal - Portal to Body */}
+            {showLogoutConfirm && createPortal(
+                <div className="modal-overlay" onClick={() => setShowLogoutConfirm(false)} style={{ alignItems: 'center' }}>
+                    {/* Added alignItems: center to force vertical centering */}
+                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '350px', padding: '30px', textAlign: 'center', margin: 'auto' }}>
+                        <h3 style={{ fontSize: '1.4rem', marginBottom: '10px', marginTop: '10px' }}>로그아웃</h3>
+                        <p style={{ opacity: 0.8, marginBottom: '30px', lineHeight: '1.5' }}>
+                            정말 로그아웃 하시겠습니까?<br />
+                            <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>(모든 로그인 데이터가 삭제됩니다)</span>
+                        </p>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <button
+                                onClick={() => setShowLogoutConfirm(false)}
+                                style={{ flex: 1, padding: '14px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}
+                            >
+                                취소
+                            </button>
+                            <button
+                                onClick={handleLogout}
+                                style={{ flex: 1, padding: '14px', borderRadius: '12px', border: 'none', background: 'linear-gradient(45deg, #ef4444, #dc2626)', color: 'white', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 15px rgba(239,68,68,0.3)' }}
+                            >
+                                확인
+                            </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
 
-        // Items: Home, Calendar, Tactics, Chat, Save (5 Items)
-        // If Admin: +1 (6 Items - might need scroll or tighter gap)
+            {/* 2. Profile View Modal - Portal to Body */}
+            {showProfileView && createPortal(
+                <div className="modal-overlay" onClick={() => setShowProfileView(false)} style={{ alignItems: 'center' }}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ width: '90%', maxWidth: '400px', padding: '25px', textAlign: 'center', margin: 'auto', maxHeight: '90vh', overflowY: 'auto' }}>
+                        <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--accent-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: '0 0 20px rgba(212, 160, 23, 0.4)' }}>
+                            <Users size={40} color="white" />
+                        </div>
+                        <h3 style={{ fontSize: '1.6rem', marginBottom: '5px', fontWeight: 'bold' }}>{user?.nickname || '모험가'}</h3>
+                        <p style={{ color: 'var(--accent-color)', marginBottom: '20px', fontSize: '0.9rem', fontWeight: 'bold' }}>
+                            {user?.className || 'Classless'} <span style={{ opacity: 0.5 }}>|</span> {(user?.role === 'Admin' || user?.isAdmin) ? '대장' : '대원'}
+                        </p>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '25px', textAlign: 'left' }}>
+                            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px' }}>
+                                <p style={{ fontSize: '0.75rem', opacity: 0.6, marginBottom: '4px' }}>직업</p>
+                                <p style={{ fontWeight: 'bold' }}>{user?.className || '-'}</p>
+                            </div>
+                            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px' }}>
+                                <p style={{ fontSize: '0.75rem', opacity: 0.6, marginBottom: '4px' }}>신분</p>
+                                <p style={{ fontWeight: 'bold' }}>{(user?.role === 'Admin' || user?.isAdmin) ? '관리자' : '일반 대원'}</p>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => {
+                                setShowProfileView(false);
+                                setShowProfileEdit(true);
+                            }}
+                            style={{
+                                width: '100%', padding: '14px', borderRadius: '12px',
+                                background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
+                                color: 'white', fontWeight: 'bold', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                        >
+                            <Settings size={18} />
+                            프로필 수정하기
+                        </button>
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {/* 3. Profile Edit Modal - Portal to Body */}
+            {showProfileEdit && createPortal(
+                <div className="modal-overlay" onClick={() => setShowProfileEdit(false)} style={{ alignItems: 'center' }}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ width: '90%', maxWidth: '400px', padding: '25px', margin: 'auto', maxHeight: '90vh', overflowY: 'auto' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                            <h3 style={{ fontSize: '1.4rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <Users size={24} color="var(--accent-color)" />
+                                프로필 수정
+                            </h3>
+                            <button onClick={() => setShowProfileEdit(false)} style={{ background: 'transparent', color: 'rgba(255,255,255,0.5)' }}>x</button>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', opacity: 0.7, marginBottom: '6px' }}>닉네임</label>
+                                <input
+                                    type="text"
+                                    value={editName}
+                                    onChange={e => setEditName(e.target.value)}
+                                    style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', outline: 'none' }}
+                                />
+                            </div>
+
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', opacity: 0.7, marginBottom: '6px' }}>직업 (Class)</label>
+                                <select
+                                    value={editClass}
+                                    onChange={e => setEditClass(e.target.value)}
+                                    style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', outline: 'none' }}
+                                >
+                                    {bg3Classes.map(c => <option key={c} value={c} style={{ background: '#1a1a2e' }}>{c}</option>)}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', opacity: 0.7, marginBottom: '8px' }}>대표 색상</label>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                    {PROFILE_COLORS.map(color => (
+                                        <div
+                                            key={color}
+                                            onClick={() => setEditColor(color)}
+                                            style={{
+                                                width: '28px', height: '28px', borderRadius: '50%',
+                                                background: color,
+                                                cursor: 'pointer',
+                                                border: editColor === color ? '3px solid white' : '1px solid transparent',
+                                                boxShadow: editColor === color ? '0 0 10px ' + color : 'none',
+                                                transform: editColor === color ? 'scale(1.1)' : 'scale(1)',
+                                                transition: 'all 0.2s'
+                                            }}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                            <button
+                                onClick={handleProfileUpdate}
+                                style={{
+                                    marginTop: '10px', padding: '14px', borderRadius: '10px',
+                                    background: 'var(--accent-color)', color: 'white', border: 'none',
+                                    fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer'
+                                }}
+                            >
+                                저장하기
+                            </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+        </>
+    );
+
+    // 6. RENDER - MOBILE NAV
+    if (isMobile) {
+        // Mobile Items Logic
+        // ... (Same Items array)
         const mobileItems = [
             { id: 'home', icon: Home, label: '홈' },
             { id: 'calendar', icon: Calendar, label: '일정' },
             { id: 'tactics', icon: Presentation, label: '전술' },
             { id: 'chat', icon: MessageSquare, label: '채팅' },
             ...(isAdmin ? [{ id: 'admin', icon: CampfireIcon, label: '관리' }] : []),
-            { id: 'save', icon: FolderOpen, label: '세이브' } // Updated: Profile -> Save
+            { id: 'save', icon: FolderOpen, label: '세이브' }
         ];
 
         return (
-            <nav className="glass" style={{
-                position: 'fixed',
-                bottom: '20px',
-                left: '20px', right: '20px',
-                margin: '0 auto', maxWidth: '500px', // Centered Max Width
-                height: '70px',
-                zIndex: 1000,
-                display: 'flex',
-                justifyContent: 'space-around', alignItems: 'center',
-                borderRadius: '24px', // More modern shape
-                border: '1px solid rgba(255,255,255,0.15)',
-                borderTop: '1px solid rgba(255,255,255,0.25)',
-                backdropFilter: 'blur(20px) saturate(180%)',
-                background: 'rgba(20, 20, 30, 0.85)',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-                padding: '0 10px'
-            }}>
-                {mobileItems.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = activeTab === item.id;
-                    return (
-                        <button
-                            key={item.id}
-                            onClick={() => setActiveTab(item.id)}
-                            style={{
-                                background: isActive ? 'rgba(255,255,255,0.1)' : 'transparent',
-                                borderRadius: '16px',
-                                width: '50px', height: '50px',
-                                border: 'none',
-                                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                                color: isActive ? 'var(--accent-color)' : 'rgba(255,255,255,0.5)',
-                                transition: 'all 0.2s',
-                                gap: '4px'
-                            }}
-                        >
-                            <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
-                            {/* Optional: Tiny Dot for active instead of background? Or just Icon color change. */}
-                            {isActive && <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--accent-color)' }} />}
-                        </button>
-                    );
-                })}
-            </nav>
+            <>
+                <nav className="glass" style={{
+                    position: 'fixed',
+                    bottom: '20px',
+                    left: '20px', right: '20px',
+                    margin: '0 auto', maxWidth: '500px',
+                    height: '70px',
+                    zIndex: 1000,
+                    display: 'flex',
+                    justifyContent: 'space-around', alignItems: 'center',
+                    borderRadius: '24px',
+                    border: '1px solid rgba(255,255,255,0.15)',
+                    borderTop: '1px solid rgba(255,255,255,0.25)',
+                    backdropFilter: 'blur(20px) saturate(180%)',
+                    background: 'rgba(20, 20, 30, 0.85)',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+                    padding: '0 10px'
+                }}>
+                    {mobileItems.map((item) => {
+                        const Icon = item.icon;
+                        const isActive = activeTab === item.id;
+                        return (
+                            <button
+                                key={item.id}
+                                onClick={() => setActiveTab(item.id)}
+                                style={{
+                                    background: isActive ? 'rgba(255,255,255,0.1)' : 'transparent',
+                                    borderRadius: '16px',
+                                    width: '50px', height: '50px',
+                                    border: 'none',
+                                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                    color: isActive ? 'var(--accent-color)' : 'rgba(255,255,255,0.5)',
+                                    transition: 'all 0.2s',
+                                    gap: '4px'
+                                }}
+                            >
+                                <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+                                {isActive && <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--accent-color)' }} />}
+                            </button>
+                        );
+                    })}
+                </nav>
+                {renderModals()}
+            </>
         );
     }
 
     const UserIcon = getClassIcon(user?.className);
 
-    // 6. RENDER - DESKTOP SIDEBAR
+    // 7. RENDER - DESKTOP SIDEBAR
     return (
         <aside className="glass" style={{
             width: '280px', height: '100vh',
@@ -211,9 +361,10 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
             display: 'flex', flexDirection: 'column',
             borderRadius: 0,
             borderRight: '1px solid rgba(255,255,255,0.1)',
-            background: 'rgba(20, 20, 30, 0.4)', // Darker reliable background
+            background: 'rgba(20, 20, 30, 0.4)',
             position: 'sticky', top: 0
         }}>
+            {/* Same Logo/Admin/Header */}
             <div style={{ padding: '0 0 25px', textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
                 {/* Hidden DB Reset Button */}
                 {showAdminReset && (
@@ -349,152 +500,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
                 </button>
             </div>
 
-            {/* 1. Logout Confirmation Modal - Portal to Body */}
-            {showLogoutConfirm && createPortal(
-                <div className="modal-overlay" onClick={() => setShowLogoutConfirm(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '350px', padding: '30px', textAlign: 'center' }}>
-                        <h3 style={{ fontSize: '1.4rem', marginBottom: '10px', marginTop: '10px' }}>로그아웃</h3>
-                        <p style={{ opacity: 0.8, marginBottom: '30px', lineHeight: '1.5' }}>
-                            정말 로그아웃 하시겠습니까?<br />
-                            <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>(모든 로그인 데이터가 삭제됩니다)</span>
-                        </p>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            <button
-                                onClick={() => setShowLogoutConfirm(false)}
-                                style={{ flex: 1, padding: '14px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}
-                            >
-                                취소
-                            </button>
-                            <button
-                                onClick={handleLogout}
-                                style={{ flex: 1, padding: '14px', borderRadius: '12px', border: 'none', background: 'linear-gradient(45deg, #ef4444, #dc2626)', color: 'white', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 15px rgba(239,68,68,0.3)' }}
-                            >
-                                확인
-                            </button>
-                        </div>
-                    </div>
-                </div>,
-                document.body
-            )}
-
-            {/* 2. Profile View Modal - Portal to Body */}
-            {showProfileView && createPortal(
-                <div className="modal-overlay" onClick={() => setShowProfileView(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', padding: '30px', textAlign: 'center' }}>
-                        <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--accent-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: '0 0 20px rgba(212, 160, 23, 0.4)' }}>
-                            <Users size={40} color="white" />
-                        </div>
-                        <h3 style={{ fontSize: '1.6rem', marginBottom: '5px', fontWeight: 'bold' }}>{user?.nickname || '모험가'}</h3>
-                        <p style={{ color: 'var(--accent-color)', marginBottom: '20px', fontSize: '0.9rem', fontWeight: 'bold' }}>
-                            {user?.className || 'Classless'} <span style={{ opacity: 0.5 }}>|</span> {(user?.role === 'Admin' || user?.isAdmin) ? '대장 (관리자)' : '대원'}
-                        </p>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '25px', textAlign: 'left' }}>
-                            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px' }}>
-                                <p style={{ fontSize: '0.75rem', opacity: 0.6, marginBottom: '4px' }}>직업</p>
-                                <p style={{ fontWeight: 'bold' }}>{user?.className || '-'}</p>
-                            </div>
-                            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px' }}>
-                                <p style={{ fontSize: '0.75rem', opacity: 0.6, marginBottom: '4px' }}>신분</p>
-                                <p style={{ fontWeight: 'bold' }}>{(user?.role === 'Admin' || user?.isAdmin) ? '관리자' : '일반 대원'}</p>
-                            </div>
-                        </div>
-
-                        <button
-                            onClick={() => {
-                                setShowProfileView(false);
-                                setShowProfileEdit(true);
-                            }}
-                            style={{
-                                width: '100%', padding: '14px', borderRadius: '12px',
-                                background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
-                                color: 'white', fontWeight: 'bold', cursor: 'pointer',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                                transition: 'all 0.2s'
-                            }}
-                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
-                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                        >
-                            <Settings size={18} />
-                            프로필 수정하기
-                        </button>
-                    </div>
-                </div>,
-                document.body
-            )}
-
-            {/* 3. Profile Edit Modal - Portal to Body */}
-            {showProfileEdit && createPortal(
-                <div className="modal-overlay" onClick={() => setShowProfileEdit(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', padding: '30px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                            <h3 style={{ fontSize: '1.4rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <Users size={24} color="var(--accent-color)" />
-                                프로필 수정
-                            </h3>
-                            <button onClick={() => setShowProfileEdit(false)} style={{ background: 'transparent', color: 'rgba(255,255,255,0.5)' }}>x</button>
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                            <div>
-                                <label style={{ display: 'block', fontSize: '0.85rem', opacity: 0.7, marginBottom: '6px' }}>닉네임</label>
-                                <input
-                                    type="text"
-                                    value={editName}
-                                    onChange={e => setEditName(e.target.value)}
-                                    style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', outline: 'none' }}
-                                />
-                            </div>
-
-                            <div>
-                                <label style={{ display: 'block', fontSize: '0.85rem', opacity: 0.7, marginBottom: '6px' }}>직업 (Class)</label>
-                                <select
-                                    value={editClass}
-                                    onChange={e => setEditClass(e.target.value)}
-                                    style={{ width: '100%', padding: '12px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', outline: 'none' }}
-                                >
-                                    {bg3Classes.map(c => <option key={c} value={c} style={{ background: '#1a1a2e' }}>{c}</option>)}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label style={{ display: 'block', fontSize: '0.85rem', opacity: 0.7, marginBottom: '8px' }}>대표 색상</label>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                    {PROFILE_COLORS.map(color => (
-                                        <div
-                                            key={color}
-                                            onClick={() => setEditColor(color)}
-                                            style={{
-                                                width: '28px', height: '28px', borderRadius: '50%',
-                                                background: color,
-                                                cursor: 'pointer',
-                                                border: editColor === color ? '3px solid white' : '1px solid transparent',
-                                                boxShadow: editColor === color ? '0 0 10px ' + color : 'none',
-                                                transform: editColor === color ? 'scale(1.1)' : 'scale(1)',
-                                                transition: 'all 0.2s'
-                                            }}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Role edit removed as per user request */}
-
-                            <button
-                                onClick={handleProfileUpdate}
-                                style={{
-                                    marginTop: '10px', padding: '14px', borderRadius: '10px',
-                                    background: 'var(--accent-color)', color: 'white', border: 'none',
-                                    fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer'
-                                }}
-                            >
-                                저장하기
-                            </button>
-                        </div>
-                    </div>
-                </div>,
-                document.body
-            )}
+            {renderModals()}
         </aside>
     );
 };
