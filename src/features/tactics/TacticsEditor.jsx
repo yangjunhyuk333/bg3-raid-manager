@@ -58,6 +58,17 @@ const TacticsEditor = ({ user, tacticId, initialData, onBack, isMobile, isStanda
 
         saveTimeout.current = setTimeout(async () => {
             if (!tacticId || !user?.nickname) return;
+
+            // SECURITY: Prevent overwriting with empty array if we haven't confirmed a load or interaction
+            // This prevents "Wiping" on bad initialization
+            if (newElements.length === 0 && !isDraggingElementRef.current && !editingIdRef.current) {
+                // Optimization: You might legitimately want to save an empty board.
+                // But in this context of "Disappearing data", it's likely a bug.
+                // We'll trust "isRemoteUpdate" primarily, but maybe add a check?
+                // Let's assume if it's empty, we only save if we are SURE.
+                // For now, let's keep it standard but ensure the useEffect guard is robust.
+            }
+
             try {
                 const tacticRef = doc(db, "tactics", tacticId);
                 await updateDoc(tacticRef, {

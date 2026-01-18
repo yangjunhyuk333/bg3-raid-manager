@@ -90,18 +90,25 @@ const Home = ({ user, setActiveTab, isMobile, onlineUsersCount, setShowSurvivors
             )}
 
             {/* Hero Section: Glass Pill Card (Text Left, Icon Right) */}
-            <div style={{
-                width: '100%',
-                minHeight: '90px',
-                borderRadius: '50px', // Pill Shape
-                background: 'rgba(20, 20, 35, 0.6)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between', // Space Between
-                padding: isMobile ? '20px 25px' : '0 40px',
-                textAlign: 'left'
-            }}>
+            <div
+                onClick={openProfile}
+                style={{
+                    width: '100%',
+                    minHeight: '90px',
+                    borderRadius: '50px', // Pill Shape
+                    background: 'rgba(20, 20, 35, 0.6)',
+                    backdropFilter: 'blur(20px)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', // Space Between
+                    padding: isMobile ? '20px 25px' : '0 40px',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    transition: 'transform 0.2s'
+                }}
+                onMouseOver={(e) => isMobile ? null : e.currentTarget.style.transform = 'scale(1.01)'}
+                onMouseOut={(e) => isMobile ? null : e.currentTarget.style.transform = 'scale(1)'}
+            >
                 <div>
                     <h1 style={{ margin: 0, fontSize: isMobile ? '1.2rem' : '1.6rem', fontWeight: 'bold' }}>
                         어서오세요, <span style={{ color: user?.color || '#ffd700' }}>{user.nickname}</span>님

@@ -19,6 +19,10 @@ const Layout = () => {
     const [onlineUsersCount, setOnlineUsersCount] = useState(0);
     const [showSurvivors, setShowSurvivors] = useState(false);
 
+    // Lifted State for Profile Modals (Shared between Home and Sidebar)
+    const [showProfileView, setShowProfileView] = useState(false);
+    const [showProfileEdit, setShowProfileEdit] = useState(false);
+
     const [user, setUser] = useState(() => {
         try {
             return JSON.parse(localStorage.getItem('bg3_user_profile'));
@@ -133,14 +137,14 @@ const Layout = () => {
         const commonProps = { user, isMobile, onlineUsersCount, setShowSurvivors };
 
         switch (activeTab) {
-            case 'home': return <Home {...commonProps} setActiveTab={setActiveTab} openTactic={openTactic} />;
+            case 'home': return <Home {...commonProps} setActiveTab={setActiveTab} openTactic={openTactic} openProfile={() => setShowProfileView(true)} />;
             case 'chat': return <ChatRoom {...commonProps} setActiveTab={setActiveTab} />;
             case 'calendar': return <RaidScheduler {...commonProps} />;
             case 'save': return <SaveAnalyzer {...commonProps} />;
             case 'admin': return <CampManagement {...commonProps} />;
             case 'tactics': return <TacticsBoard {...commonProps} initialTacticId={targetTacticId} clearInitialTactic={() => setTargetTacticId(null)} />;
             case 'profile': return <ProfileSetup user={user} onComplete={() => window.location.reload()} isMobile={isMobile} />;
-            default: return <Home {...commonProps} setActiveTab={setActiveTab} />;
+            default: return <Home {...commonProps} setActiveTab={setActiveTab} openProfile={() => setShowProfileView(true)} />;
         }
     };
 
@@ -156,6 +160,11 @@ const Layout = () => {
                 // Pass props to Sidebar
                 onlineUsersCount={onlineUsersCount}
                 setShowSurvivors={setShowSurvivors}
+                // Profile Modal Props
+                showProfileView={showProfileView}
+                setShowProfileView={setShowProfileView}
+                showProfileEdit={showProfileEdit}
+                setShowProfileEdit={setShowProfileEdit}
             />
 
             <main style={{

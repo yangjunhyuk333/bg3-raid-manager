@@ -17,14 +17,13 @@ const CampfireIcon = ({ size = 20, color = "currentColor" }) => (
     </div>
 );
 
-const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, setShowSurvivors }) => { // Ensure props are updated here too if previous failed
+const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, setShowSurvivors, showProfileView, setShowProfileView, showProfileEdit, setShowProfileEdit }) => {
     // 1. STATE DECLARATIONS
     // const [onlineUsersCount, setOnlineUsersCount] = React.useState(0); // Removed internal state
     const [maxMembers, setMaxMembers] = React.useState(4);
 
     // Profile & Admin UI State
-    const [showProfileView, setShowProfileView] = React.useState(false);
-    const [showProfileEdit, setShowProfileEdit] = React.useState(false);
+    // Lifted to Layout
     const [showAdminReset, setShowAdminReset] = React.useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
 
@@ -127,15 +126,15 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
     if (isMobile) {
         // Mobile Layout: Bottom Navigation Bar Only (Clean Design)
 
-        // Items: Home, Calendar, Tactics, Chat, Profile (5 Items)
+        // Items: Home, Calendar, Tactics, Chat, Save (5 Items)
         // If Admin: +1 (6 Items - might need scroll or tighter gap)
         const mobileItems = [
             { id: 'home', icon: Home, label: '홈' },
             { id: 'calendar', icon: Calendar, label: '일정' },
-            { id: 'tactics', icon: Presentation, label: '전술' }, // Updated Icon to resemble Board
+            { id: 'tactics', icon: Presentation, label: '전술' },
             { id: 'chat', icon: MessageSquare, label: '채팅' },
             ...(isAdmin ? [{ id: 'admin', icon: CampfireIcon, label: '관리' }] : []),
-            { id: 'profile', icon: Users, label: '프로필' }
+            { id: 'save', icon: FolderOpen, label: '세이브' } // Updated: Profile -> Save
         ];
 
         return (
