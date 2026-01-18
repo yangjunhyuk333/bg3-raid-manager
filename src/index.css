@@ -104,12 +104,8 @@ body {
 
 #root {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  /* Center vertically */
-  align-items: center;
-  /* Center horizontally */
+  width: 100%;
+  isolation: isolate;
 }
 
 /* Enhanced Glassmorphism Utility Class */
