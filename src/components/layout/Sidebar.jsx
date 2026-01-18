@@ -25,6 +25,23 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
     const isAdmin = user?.isAdmin === true;
 
     // 2. EFFECTS
+    // Real-time Camp Member Count
+    React.useEffect(() => {
+        if (!user?.campId) return;
+
+        const { query, where, onSnapshot, collection } = require('firebase/firestore');
+        const q = query(
+            collection(db, "users_v2"),
+            where("campId", "==", user.campId)
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            setOnlineUsersCount(snapshot.size);
+        });
+
+        return () => unsubscribe();
+    }, [user?.campId]);
+
     // Sync profile form data when user prop updates
     React.useEffect(() => {
         if (user) {
