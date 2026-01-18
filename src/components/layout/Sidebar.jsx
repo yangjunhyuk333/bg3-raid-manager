@@ -8,21 +8,27 @@ import { db } from '../../lib/firebase';
 const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
     // Real-time Camp Users Count
     const [onlineUsersCount, setOnlineUsersCount] = React.useState(0);
-    const [maxMembers, setMaxMembers] = React.useState(4);
-    const isAdmin = user?.isAdmin === true;
+    const [showAdminReset, setShowAdminReset] = React.useState(false);
+    const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
 
+    // Secret Admin Toggle (Shift + Alt + R)
     React.useEffect(() => {
-        if (!user?.campId) return;
-
-        const unsubscribe = onSnapshot(doc(db, "camps", user.campId), (doc) => {
-            if (doc.exists()) {
-                const data = doc.data();
-                setOnlineUsersCount(data.members?.length || 0);
+        const handleKeyDown = (e) => {
+            if (e.shiftKey && e.altKey && (e.key === 'R' || e.key === 'r')) {
+                setShowAdminReset(prev => !prev);
             }
-        });
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
-        return () => unsubscribe();
-    }, [user?.campId]);
+    const handleLogout = () => {
+        // Clear all local data to ensure fresh login
+        localStorage.clear();
+        sessionStorage.clear();
+        setUser(null);
+        window.location.reload();
+    };
 
     const menuItems = [
         { id: 'home', label: '홈', icon: Home },
@@ -77,7 +83,45 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
                             </button>
                         );
                     })}
+                    <button
+                        onClick={() => setShowLogoutConfirm(true)}
+                        style={{
+                            background: 'transparent', border: 'none',
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
+                            color: 'rgba(248, 113, 113, 0.8)',
+                            padding: '5px', flex: 1
+                        }}
+                    >
+                        <LogOut size={20} />
+                        <span style={{ fontSize: '0.7rem' }}>나가기</span>
+                    </button>
                 </nav>
+
+                {/* Mobile Logout Modal */}
+                {showLogoutConfirm && (
+                    <div className="modal-overlay" onClick={() => setShowLogoutConfirm(false)}>
+                        <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px', padding: '30px' }}>
+                            <h3 style={{ fontSize: '1.3rem', marginBottom: '15px' }}>로그아웃 하시겠습니까?</h3>
+                            <p style={{ opacity: 0.7, marginBottom: '25px', fontSize: '0.9rem' }}>
+                                저장된 로그인 정보가 기기에서 삭제됩니다.
+                            </p>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <button
+                                    onClick={() => setShowLogoutConfirm(false)}
+                                    style={{ flex: 1, padding: '12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: 'white', cursor: 'pointer' }}
+                                >
+                                    취소
+                                </button>
+                                <button
+                                    onClick={handleLogout}
+                                    style={{ flex: 1, padding: '12px', borderRadius: '10px', border: 'none', background: '#ef4444', color: 'white', fontWeight: 'bold', cursor: 'pointer' }}
+                                >
+                                    확인
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </>
         );
     }
@@ -89,28 +133,26 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
             display: 'flex', flexDirection: 'column'
         }}>
             <div style={{ padding: '0 0 20px', textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                {/* Temporary DB Reset Button */}
-                <button
-                    id="db-reset-btn"
-                    onClick={async () => {
-                        if (confirm("경고: 모든 사용자와 야영지를 초기화하시겠습니까?")) {
-                            const { collection, getDocs, deleteDoc } = await import('firebase/firestore');
-                            // 1. Delete users_v2
-                            const users = await getDocs(collection(db, 'users_v2'));
-                            users.forEach(d => deleteDoc(d.ref));
-                            // 2. Delete camps
-                            const camps = await getDocs(collection(db, 'camps'));
-                            camps.forEach(d => deleteDoc(d.ref));
-
-                            alert('초기화 완료. 로컬 스토리지도 삭제합니다.');
-                            localStorage.clear();
-                            window.location.reload();
-                        }
-                    }}
-                    style={{ background: 'red', color: 'white', border: 'none', padding: '5px', marginBottom: '10px', fontSize: '0.7rem', cursor: 'pointer' }}
-                >
-                    [ADMIN] DB 초기화
-                </button>
+                {/* Hidden DB Reset Button */}
+                {showAdminReset && (
+                    <button
+                        id="db-reset-btn"
+                        onClick={async () => {
+                            if (confirm("⚠️ 경고: 정말로 DB를 초기화하시겠습니까? 돌이킬 수 없습니다.")) {
+                                const { collection, getDocs, deleteDoc } = await import('firebase/firestore');
+                                const users = await getDocs(collection(db, 'users_v2'));
+                                users.forEach(d => deleteDoc(d.ref));
+                                const camps = await getDocs(collection(db, 'camps'));
+                                camps.forEach(d => deleteDoc(d.ref));
+                                alert('초기화 완료. 재접속합니다.');
+                                handleLogout();
+                            }
+                        }}
+                        style={{ background: 'red', color: 'white', border: 'none', padding: '5px', marginBottom: '10px', fontSize: '0.7rem', cursor: 'pointer', width: '100%' }}
+                    >
+                        [ADMIN] DB 초기화
+                    </button>
+                )}
 
                 {/* Final User Logo - rendering as-is without blend modes */}
                 <img src={logo} alt="BG3" style={{ width: '100%', height: 'auto', marginBottom: '10px' }} onError={(e) => e.target.style.display = 'none'} />
@@ -164,15 +206,9 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
                     <div style={{ fontWeight: 'bold', fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {user.nickname}
                     </div>
-                    <div style={{ fontSize: '0.75rem', opacity: 0.5 }}>{user.className}</div>
                 </div>
                 <button
-                    onClick={() => {
-                        // Immediate Logout for UX testing
-                        localStorage.removeItem('bg3_user_profile');
-                        setUser(null); // Update state directly
-                        window.location.reload();
-                    }}
+                    onClick={() => setShowLogoutConfirm(true)}
                     style={{
                         background: 'rgba(248, 113, 113, 0.15)',
                         border: '1px solid rgba(248, 113, 113, 0.4)',
@@ -183,9 +219,36 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
                     }}
                     title="로그아웃"
                 >
-                    <LogOut size={16} /> 로그아웃
+                    <LogOut size={16} />
                 </button>
             </div>
+
+            {/* Logout Confirmation Modal */}
+            {showLogoutConfirm && (
+                <div className="modal-overlay" onClick={() => setShowLogoutConfirm(false)}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '350px', padding: '30px', textAlign: 'center' }}>
+                        <h3 style={{ fontSize: '1.4rem', marginBottom: '10px', marginTop: '10px' }}>로그아웃</h3>
+                        <p style={{ opacity: 0.8, marginBottom: '30px', lineHeight: '1.5' }}>
+                            정말 로그아웃 하시겠습니까?<br />
+                            <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>(모든 로그인 데이터가 삭제됩니다)</span>
+                        </p>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <button
+                                onClick={() => setShowLogoutConfirm(false)}
+                                style={{ flex: 1, padding: '14px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}
+                            >
+                                취소
+                            </button>
+                            <button
+                                onClick={handleLogout}
+                                style={{ flex: 1, padding: '14px', borderRadius: '12px', border: 'none', background: 'linear-gradient(45deg, #ef4444, #dc2626)', color: 'white', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 15px rgba(239,68,68,0.3)' }}
+                            >
+                                확인
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </aside>
     );
 };
