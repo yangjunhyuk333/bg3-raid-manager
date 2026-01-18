@@ -40,22 +40,29 @@ const TacticsList = ({ user, onSelectTactic }) => {
         e.preventDefault();
         if (!newTitle.trim()) return;
 
+        if (!user.campId) {
+            alert("소속된 영지 정보가 없습니다. 다시 로그인해주세요.");
+            return;
+        }
+
         try {
+            console.log("Creating tactic...", { campId: user.campId, author: user.nickname, title: newTitle });
             await addDoc(collection(db, "tactics"), {
                 campId: user.campId,
-                authorId: user.id,
+                authorId: user.id || user.nickname, // Fallback
                 authorName: user.nickname,
                 title: newTitle,
                 description: newDesc,
                 createdAt: serverTimestamp(),
                 elements: [] // Empty canvas initially
             });
+            console.log("Tactic created successfully");
             setShowCreateModal(false);
             setNewTitle('');
             setNewDesc('');
         } catch (error) {
             console.error("Error creating tactic:", error);
-            alert("전술판 생성 실패: " + error.message);
+            alert("전술판 생성 실패: " + error.code + " - " + error.message);
         }
     };
 

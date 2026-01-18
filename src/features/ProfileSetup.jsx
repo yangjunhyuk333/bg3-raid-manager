@@ -19,6 +19,11 @@ const CLASSES = [
     { id: 'wizard', name: '위자드', icon: BookOpen, color: '#818cf8' },
 ];
 
+const PROFILE_COLORS = [
+    '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981',
+    '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e'
+];
+
 // Styles defined outside component
 const inputStyle = {
     width: '100%', padding: '16px', borderRadius: '12px',
@@ -55,6 +60,29 @@ const ClassSelector = ({ selected, onSelect }) => (
                 <span style={{ fontSize: '0.75rem', fontWeight: selected?.id === cls.id ? 'bold' : 'normal' }}>{cls.name}</span>
             </button>
         ))}
+    </div>
+);
+
+const ColorSelector = ({ selected, onSelect }) => (
+    <div style={{ margin: '15px 0' }}>
+        <label style={{ fontSize: '0.85rem', color: 'white', opacity: 0.8, display: 'block', marginBottom: '8px' }}>대표 색상</label>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            {PROFILE_COLORS.map(color => (
+                <div
+                    key={color}
+                    onClick={() => onSelect(color)}
+                    style={{
+                        width: '28px', height: '28px', borderRadius: '50%',
+                        background: color,
+                        cursor: 'pointer',
+                        border: selected === color ? '3px solid white' : '1px solid transparent',
+                        boxShadow: selected === color ? '0 0 10px ' + color : 'none',
+                        transform: selected === color ? 'scale(1.1)' : 'scale(1)',
+                        transition: 'all 0.2s'
+                    }}
+                />
+            ))}
+        </div>
     </div>
 );
 
@@ -99,6 +127,7 @@ const ProfileSetup = ({ onComplete, initialData, user, isMobile }) => {
     const [selectedClass, setSelectedClass] = useState(
         data ? CLASSES.find(c => c.name === data.className) : null
     );
+    const [selectedColor, setSelectedColor] = useState(data?.color || PROFILE_COLORS[Math.floor(Math.random() * PROFILE_COLORS.length)]);
     const [campName, setCampName] = useState('');     // For Admin: Create Camp Name / For User: Search
     const [campPassword, setCampPassword] = useState(''); // Shared Password
 
@@ -124,6 +153,7 @@ const ProfileSetup = ({ onComplete, initialData, user, isMobile }) => {
         setSelectedCampId(null);
         setError('');
         setAvailableCamps([]);
+        setSelectedColor(PROFILE_COLORS[Math.floor(Math.random() * PROFILE_COLORS.length)]);
     };
 
     // Helper to close modal
@@ -252,13 +282,14 @@ const ProfileSetup = ({ onComplete, initialData, user, isMobile }) => {
             const campDoc = await getDoc(campDocRef);
             if (campDoc.exists()) throw new Error("이미 존재하는 영지 이름입니다.");
 
-            // 3. Create User Data (Admin)
+            {/* 3. Create User Data (Admin) */ }
             const newUser = {
                 id: nickname,
                 nickname,
                 password,
                 className: selectedClass.name,
                 classId: selectedClass.id,
+                color: selectedColor, // Save Color
                 isAdmin: true,
                 campId: campId, // Link to Camp
                 createdAt: new Date().toISOString()
@@ -329,6 +360,7 @@ const ProfileSetup = ({ onComplete, initialData, user, isMobile }) => {
                 password,
                 className: selectedClass.name,
                 classId: selectedClass.id,
+                color: selectedColor, // Save Color
                 isAdmin: false,
                 campId: selectedCampId,
                 createdAt: new Date().toISOString()
@@ -521,6 +553,7 @@ const ProfileSetup = ({ onComplete, initialData, user, isMobile }) => {
                             <input type="text" placeholder="영지 입장 암호 (팀원 공유용)" value={campPassword} onChange={e => setCampPassword(e.target.value)} style={{ ...inputStyle, borderColor: '#818cf8', color: '#818cf8', marginBottom: 0 }} />
                         </div>
 
+                        <ColorSelector selected={selectedColor} onSelect={setSelectedColor} />
                         <label style={{ fontSize: '0.9rem', color: 'white', opacity: 0.8, marginTop: '5px', display: 'block' }}>나의 직업 선택</label>
                         <ClassSelector selected={selectedClass} onSelect={setSelectedClass} />
                     </div>
@@ -577,6 +610,7 @@ const ProfileSetup = ({ onComplete, initialData, user, isMobile }) => {
                                 <div style={{ height: '10px' }} />
                                 <input type="text" placeholder="내 닉네임" value={nickname} onChange={e => setNickname(e.target.value)} style={inputStyle} />
                                 <input type="password" placeholder="내 비밀번호" value={password} onChange={e => setPassword(e.target.value)} style={inputStyle} />
+                                <ColorSelector selected={selectedColor} onSelect={setSelectedColor} />
                                 <label style={{ fontSize: '0.9rem', color: 'white', opacity: 0.8, marginTop: '15px', display: 'block' }}>나의 직업 선택</label>
                                 <ClassSelector selected={selectedClass} onSelect={setSelectedClass} />
                             </div>
