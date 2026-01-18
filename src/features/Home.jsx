@@ -156,73 +156,66 @@ const Home = ({ user, setActiveTab, isMobile, onlineUsersCount, setShowSurvivors
                 </div>
             )}
 
-            <h1 style={{ fontSize: isMobile ? '1.5rem' : '2rem', marginBottom: '10px', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
-                어서오세요, <span style={{ color: 'var(--accent-color)' }}>{user?.nickname || '모험가'}</span>님
-            </h1>
-            <p style={{ opacity: 0.8, maxWidth: '600px', margin: '0 auto', fontSize: isMobile ? '0.9rem' : '1rem' }}>
-                발더스 게이트 원정대에 오신 것을 환영합니다. <br />
-                오늘의 모험을 시작하기 전에 일정을 확인하고 파티원들과 소통해보세요.
-            </p>
-        </div>
 
-            {/* Quick Actions Grid */ }
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? '10px' : '20px' }}>
-        <QuickCard
-            icon={Calendar}
-            title="레이드 일정"
-            desc="다가오는 모험 확인하기"
-            onClick={() => setActiveTab('calendar')}
-            color="248, 113, 113"
-        />
-        <QuickCard
-            icon={Activity}
-            title="세이브 분석"
-            desc="내 캐릭터 스펙 확인"
-            onClick={() => setActiveTab('save')}
-            color="167, 139, 250"
-        />
-        <QuickCard
-            icon={MessageSquare}
-            title="작전 회의실"
-            desc="파티원들과 대화하기"
-            onClick={() => setActiveTab('chat')}
-            color="52, 211, 153"
-        />
-    </div>
 
-    {/* Recent Schedule & Status */ }
-    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '10px' : '20px' }}>
-        {/* Upcoming Raids */}
-        <div className="glass-panel" style={{ padding: '20px' }}>
-            <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 20px' }}>
-                <Calendar size={18} /> 다가오는 일정
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {loading ? <p style={{ opacity: 0.5 }}>로딩 중...</p> :
-                    recentRaids.length === 0 ? <p style={{ opacity: 0.5 }}>예정된 일정이 없습니다.</p> :
-                        recentRaids.map(raid => (
-                            <div key={raid.id} style={{
-                                padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px',
-                                display: 'flex', alignItems: 'center', gap: '15px'
-                            }}>
-                                <div style={{
-                                    display: 'flex', flexDirection: 'column', alignItems: 'center',
-                                    padding: '5px 10px', background: 'rgba(0,0,0,0.3)', borderRadius: '6px'
-                                }}>
-                                    <span style={{ fontSize: '0.7rem', opacity: 0.7 }}>{raid.date?.split('-')[1]}월</span>
-                                    <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{raid.date?.split('-')[2]}</span>
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                    <div style={{ fontWeight: 'bold' }}>{raid.title}</div>
-                                    <div style={{ fontSize: '0.8rem', opacity: 0.6 }}>{raid.time} • {raid.type === 'raid' ? '⚔️ 레이드' : '📜 스토리'}</div>
-                                </div>
-                            </div>
-                        ))}
+            {/* Quick Actions Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? '10px' : '20px' }}>
+                <QuickCard
+                    icon={Calendar}
+                    title="레이드 일정"
+                    desc="다가오는 모험 확인하기"
+                    onClick={() => setActiveTab('calendar')}
+                    color="248, 113, 113"
+                />
+                <QuickCard
+                    icon={Activity}
+                    title="세이브 분석"
+                    desc="내 캐릭터 스펙 확인"
+                    onClick={() => setActiveTab('save')}
+                    color="167, 139, 250"
+                />
+                <QuickCard
+                    icon={MessageSquare}
+                    title="작전 회의실"
+                    desc="파티원들과 대화하기"
+                    onClick={() => setActiveTab('chat')}
+                    color="52, 211, 153"
+                />
             </div>
-        </div>
+
+            {/* Recent Schedule & Status */}
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '10px' : '20px' }}>
+                {/* Upcoming Raids */}
+                <div className="glass-panel" style={{ padding: '20px' }}>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 20px' }}>
+                        <Calendar size={18} /> 다가오는 일정
+                    </h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        {loading ? <p style={{ opacity: 0.5 }}>로딩 중...</p> :
+                            recentRaids.length === 0 ? <p style={{ opacity: 0.5 }}>예정된 일정이 없습니다.</p> :
+                                recentRaids.map(raid => (
+                                    <div key={raid.id} style={{
+                                        padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px',
+                                        display: 'flex', alignItems: 'center', gap: '15px'
+                                    }}>
+                                        <div style={{
+                                            display: 'flex', flexDirection: 'column', alignItems: 'center',
+                                            padding: '5px 10px', background: 'rgba(0,0,0,0.3)', borderRadius: '6px'
+                                        }}>
+                                            <span style={{ fontSize: '0.7rem', opacity: 0.7 }}>{raid.date?.split('-')[1]}월</span>
+                                            <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{raid.date?.split('-')[2]}</span>
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ fontWeight: 'bold' }}>{raid.title}</div>
+                                            <div style={{ fontSize: '0.8rem', opacity: 0.6 }}>{raid.time} • {raid.type === 'raid' ? '⚔️ 레이드' : '📜 스토리'}</div>
+                                        </div>
+                                    </div>
+                                ))}
+                    </div>
+                </div>
 
 
-    </div>
+            </div>
         </div >
     );
 };
