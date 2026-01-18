@@ -15,10 +15,11 @@ const ChatRoom = ({ user }) => {
         if (!user?.campId) return;
 
         // Firestore 실시간 리스너 (CampId 필터링)
+        // Firestore 실시간 리스너 (CampId 필터링)
+        // orderBy를 제거하여 복합 색인(Composite Index) 없이도 동작하도록 수정 (클라이언트 정렬)
         const q = query(
             collection(db, "chats"),
             where("campId", "==", user.campId),
-            orderBy("timestamp", "asc"),
             limit(50)
         );
 
@@ -28,6 +29,10 @@ const ChatRoom = ({ user }) => {
                 ...doc.data(),
                 timestamp: doc.data().timestamp?.toDate().toISOString() || new Date().toISOString()
             }));
+
+            // Client-side Sort
+            msgs.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
             setMessages(msgs);
             setLoading(false);
         });
@@ -85,7 +90,7 @@ const ChatRoom = ({ user }) => {
     }
 
     return (
-        <div className="glass-panel" style={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column', padding: 0 }}>
+        <div className="glass-panel" style={{ height: '100%', minHeight: '500px', display: 'flex', flexDirection: 'column', padding: 0 }}>
             <div style={{ padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
                 <h2 style={{ fontSize: '1.2rem', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Bot color="#4fd1c5" /> 파티 작전 회의실

@@ -46,95 +46,64 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
     }
 
     if (isMobile) {
+        // Limited items for Mobile Bottom Nav (Max 5)
+        const mobileItems = menuItems.slice(0, 4); // Home, Chat, Calendar, Tactics
+        const profileItem = menuItems.find(i => i.id === 'profile');
+
         return (
-            <>
-                {/* Mobile Top Header */}
-                <div className="glass" style={{
-                    position: 'fixed', top: 0, left: 0, right: 0,
-                    height: '60px', padding: '0 20px', zIndex: 1000,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    borderRadius: 0, borderBottom: '1px solid rgba(255,255,255,0.1)'
-                }}>
-                    <h2 style={{ fontSize: '1.2rem', margin: 0, color: 'white' }}>Baldur's Gate 3</h2>
-                </div>
-
-                {/* Mobile Bottom Navigation */}
-                <nav className="glass" style={{
-                    position: 'fixed', bottom: 0, left: 0, right: 0,
-                    height: '70px', zIndex: 1000,
-                    display: 'flex', justifyContent: 'space-around', alignItems: 'center',
-                    borderRadius: 0, borderTop: '1px solid rgba(255,255,255,0.1)',
-                    backdropFilter: 'blur(20px)', background: 'rgba(0,0,0,0.8)'
-                }}>
-                    {menuItems.map((item) => {
-                        const Icon = item.icon;
-                        const isActive = activeTab === item.id;
-                        return (
-                            <button
-                                key={item.id}
-                                onClick={() => setActiveTab(item.id)}
-                                style={{
-                                    background: 'transparent', border: 'none',
-                                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
-                                    color: isActive ? 'var(--accent-color)' : 'rgba(255,255,255,0.5)',
-                                    padding: '5px', flex: 1
-                                }}
-                            >
-                                <Icon size={20} />
-                                <span style={{ fontSize: '0.7rem' }}>{item.label}</span>
-                            </button>
-                        );
-                    })}
-                    <button
-                        onClick={() => setShowLogoutConfirm(true)}
-                        style={{
-                            background: 'transparent', border: 'none',
-                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
-                            color: 'rgba(248, 113, 113, 0.8)',
-                            padding: '5px', flex: 1
-                        }}
-                    >
-                        <LogOut size={20} />
-                        <span style={{ fontSize: '0.7rem' }}>나가기</span>
-                    </button>
-                </nav>
-
-                {/* Mobile Logout Modal */}
-                {showLogoutConfirm && (
-                    <div className="modal-overlay" onClick={() => setShowLogoutConfirm(false)}>
-                        <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '320px', padding: '30px' }}>
-                            <h3 style={{ fontSize: '1.3rem', marginBottom: '15px' }}>로그아웃 하시겠습니까?</h3>
-                            <p style={{ opacity: 0.7, marginBottom: '25px', fontSize: '0.9rem' }}>
-                                저장된 로그인 정보가 기기에서 삭제됩니다.
-                            </p>
-                            <div style={{ display: 'flex', gap: '10px' }}>
-                                <button
-                                    onClick={() => setShowLogoutConfirm(false)}
-                                    style={{ flex: 1, padding: '12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.2)', background: 'transparent', color: 'white', cursor: 'pointer' }}
-                                >
-                                    취소
-                                </button>
-                                <button
-                                    onClick={handleLogout}
-                                    style={{ flex: 1, padding: '12px', borderRadius: '10px', border: 'none', background: '#ef4444', color: 'white', fontWeight: 'bold', cursor: 'pointer' }}
-                                >
-                                    확인
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </>
+            <nav className="glass" style={{
+                position: 'fixed', bottom: 0, left: 0, right: 0,
+                height: '70px', zIndex: 1000,
+                display: 'flex', justifyContent: 'space-evenly', alignItems: 'center',
+                borderRadius: 0, borderTop: '1px solid rgba(255,255,255,0.1)',
+                backdropFilter: 'blur(20px)', background: 'rgba(0,0,0,0.9)',
+                paddingBottom: 'safe-area-inset-bottom' // iPhone home bar support
+            }}>
+                {mobileItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeTab === item.id;
+                    return (
+                        <button
+                            key={item.id}
+                            onClick={() => setActiveTab(item.id)}
+                            style={{
+                                background: 'transparent', border: 'none',
+                                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px',
+                                color: isActive ? 'var(--accent-color)' : 'rgba(255,255,255,0.5)',
+                                padding: '10px', flex: 1, minWidth: '60px'
+                            }}
+                        >
+                            <Icon size={24} /> {/* Larger Icons */}
+                        </button>
+                    );
+                })}
+                {/* Profile/More Tab */}
+                <button
+                    onClick={() => setActiveTab('profile')}
+                    style={{
+                        background: 'transparent', border: 'none',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px',
+                        color: activeTab === 'profile' ? 'var(--accent-color)' : 'rgba(255,255,255,0.5)',
+                        padding: '10px', flex: 1, minWidth: '60px'
+                    }}
+                >
+                    <Users size={24} />
+                </button>
+            </nav>
         );
     }
 
     return (
         <aside className="glass" style={{
-            width: '250px', height: 'calc(100vh - 40px)',
-            margin: '20px', padding: '20px',
-            display: 'flex', flexDirection: 'column'
+            width: '280px', height: '100vh',
+            margin: 0, padding: '25px',
+            display: 'flex', flexDirection: 'column',
+            borderRadius: 0,
+            borderRight: '1px solid rgba(255,255,255,0.1)',
+            background: 'rgba(20, 20, 30, 0.4)', // Darker reliable background
+            position: 'sticky', top: 0
         }}>
-            <div style={{ padding: '0 0 20px', textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ padding: '0 0 25px', textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
                 {/* Hidden DB Reset Button */}
                 {showAdminReset && (
                     <button

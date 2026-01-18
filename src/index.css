@@ -77,6 +77,11 @@ body {
   mask-repeat: no-repeat;
   -webkit-mask-position: center;
   mask-position: center;
+
+  /* Performance Optimization */
+  will-change: background-position;
+  transform: translateZ(0);
+  /* Force GPU acceleration */
 }
 
 @keyframes shineMove {
@@ -166,13 +171,23 @@ body {
   border-radius: 30px;
   /* Rounder corners */
   width: 90%;
-  max-width: 480px;
+  max-width: 500px;
+  /* Slightly wider default */
   max-height: 85vh;
   overflow-y: auto;
   position: relative;
 
   /* Animation */
   animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 768px) {
+  .modal-content {
+    max-width: 600px;
+    /* Wider on desktop */
+    padding: 20px;
+    /* More padding inside if needed, though content handles it */
+  }
 }
 
 @keyframes fadeIn {
