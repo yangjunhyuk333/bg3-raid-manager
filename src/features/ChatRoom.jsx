@@ -94,13 +94,13 @@ const ChatRoom = ({ user, isMobile }) => {
             display: 'flex',
             flexDirection: 'column',
             padding: 0,
-            position: isMobile ? 'fixed' : 'absolute', // Fixed on mobile to guarantee viewport placement
-            top: isMobile ? '60px' : 0,    // Clear Mobile Top Header
+            position: isMobile ? 'fixed' : 'absolute',
+            top: isMobile ? 'calc(60px + env(safe-area-inset-top))' : 0,
             left: isMobile ? 0 : 0,
             right: isMobile ? 0 : 0,
-            bottom: isMobile ? '76px' : 0, // Clear Mobile Bottom Nav (75px + 1px)
-            background: isMobile ? 'rgba(20, 20, 30, 0.95)' : 'transparent', // Ensure background on mobile
-            zIndex: 50 // Below Nav (1000)
+            bottom: isMobile ? 'calc(65px + env(safe-area-inset-bottom))' : 0,
+            background: isMobile ? 'rgba(20, 20, 30, 0.95)' : 'transparent',
+            zIndex: 50
         }}>
             <div style={{ padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
                 <h2 style={{ fontSize: '1.2rem', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>

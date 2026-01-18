@@ -122,30 +122,47 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
             <>
                 {/* Mobile Top Header with Logo */}
                 <div className="glass" style={{
-                    position: 'fixed', top: 0, left: 0, right: 0,
-                    height: '60px', zIndex: 1000,
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 'calc(60px + env(safe-area-inset-top))',
+                    paddingTop: 'env(safe-area-inset-top)',
+                    zIndex: 1000,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     borderBottom: '1px solid rgba(255,255,255,0.1)',
-                    backdropFilter: 'blur(15px)', background: 'rgba(10, 10, 20, 0.8)'
+                    backdropFilter: 'blur(15px)', background: 'rgba(10, 10, 20, 0.9)'
                 }}>
-                    <img
-                        src={logo}
-                        alt="BG3 Logo"
-                        style={{ height: '35px', cursor: 'pointer' }}
-                        onClick={() => window.location.reload()}
-                    />
+                    <div className="logo-wrapper" style={{ position: 'relative', height: '35px', cursor: 'pointer' }} onClick={() => window.location.reload()}>
+                        <img
+                            src={logo}
+                            alt="BG3 Logo"
+                            style={{ height: '100%', width: 'auto' }}
+                        />
+                        <div
+                            className="logo-shine"
+                            style={{
+                                WebkitMaskImage: `url(${logo})`,
+                                maskImage: `url(${logo})`,
+                                backgroundSize: 'contain'
+                            }}
+                        />
+                    </div>
                 </div>
 
                 {/* Mobile Bottom Nav */}
                 <nav className="glass" style={{
-                    position: 'fixed', bottom: 0, left: 0, right: 0,
-                    height: '75px', zIndex: 1000,
+                    position: 'fixed',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: 'calc(65px + env(safe-area-inset-bottom))',
+                    zIndex: 1000,
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    borderRadius: '16px 16px 0 0', // Rounded top corners
+                    borderRadius: '20px 20px 0 0',
                     borderTop: '1px solid rgba(255,255,255,0.15)',
                     backdropFilter: 'blur(25px)', background: 'rgba(10, 10, 20, 0.95)',
-                    padding: '0 10px',
-                    paddingBottom: 'safe-area-inset-bottom'
+                    padding: '0 20px env(safe-area-inset-bottom)',
                 }}>
                     {mobileItems.map((item) => {
                         const Icon = item.icon;

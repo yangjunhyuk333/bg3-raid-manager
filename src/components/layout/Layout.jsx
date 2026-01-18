@@ -73,8 +73,8 @@ const Layout = () => {
                 position: 'relative'
             }}>
                 <div style={{
-                    padding: isMobile ? '80px 20px 100px' : '40px', // Increased top padding for mobile header (60px + gap)
-                    maxWidth: activeTab === 'chat' ? '100%' : '1200px', // Full width for chat
+                    padding: isMobile ? 'calc(80px + env(safe-area-inset-top)) 20px calc(80px + env(safe-area-inset-bottom))' : '40px',
+                    maxWidth: activeTab === 'chat' ? '100%' : '1200px',
                     margin: '0 auto',
                     minHeight: '100%'
                 }}>
