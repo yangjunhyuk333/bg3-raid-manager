@@ -26,20 +26,10 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
 
     // 2. EFFECTS
     // Real-time Camp Member Count
-    React.useEffect(() => {
-        if (!user?.campId) return;
-
-        const q = query(
-            collection(db, "users_v2"),
-            where("campId", "==", user.campId)
-        );
-
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            setOnlineUsersCount(snapshot.size);
-        });
-
-        return () => unsubscribe();
-    }, [user?.campId]);
+    // Real-time Camp Member Count Listener Removed (Lifted to Layout.jsx)
+    /* 
+    React.useEffect(() => { ... }, []); 
+    */
 
     // Sync profile form data when user prop updates
     React.useEffect(() => {
@@ -268,11 +258,17 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
                     />
                 </div>
 
-                <div style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '6px',
-                    padding: '4px 10px', background: 'rgba(0,0,0,0.3)', borderRadius: '12px',
-                    fontSize: '0.75rem', border: '1px solid rgba(255,255,255,0.1)'
-                }}>
+                <div
+                    onClick={() => setShowSurvivors && setShowSurvivors(true)}
+                    style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                        padding: '4px 10px', background: 'rgba(0,0,0,0.3)', borderRadius: '12px',
+                        fontSize: '0.75rem', border: '1px solid rgba(255,255,255,0.1)',
+                        cursor: 'pointer', transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.3)'}
+                >
                     <Users size={12} color="#4ade80" />
                     <span style={{ color: '#4ade80' }}>{onlineUsersCount}/{maxMembers}명 접속 중</span>
                 </div>
