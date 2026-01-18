@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Home, MessageSquare, Calendar, FolderOpen, Users, Settings, Flag, LogOut, Presentation, Tent } from 'lucide-react'; // Added Tent
+import { Home, MessageSquare, Calendar, FolderOpen, Users, Settings, Flag, LogOut, Presentation, Tent, Sword, Music, Heart, Leaf, Zap, Shield, Target, Ghost, Flame, Skull, Wand2, Axe } from 'lucide-react'; // Added Class Icons
 import logo from '../../assets/logo.svg';
 
 import { db } from '../../lib/firebase';
@@ -40,6 +40,25 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
 
 
     const isAdmin = user?.isAdmin === true;
+
+    // Helper: Get Icon
+    const getClassIcon = (cls) => {
+        if (!cls) return Users;
+        if (cls.includes('바바리안')) return Axe;
+        if (cls.includes('바드')) return Music;
+        if (cls.includes('클레릭')) return Heart;
+        if (cls.includes('드루이드')) return Leaf;
+        if (cls.includes('파이터')) return Sword;
+        if (cls.includes('몽크')) return Zap;
+        if (cls.includes('팔라딘')) return Shield;
+        if (cls.includes('레인저')) return Target;
+        if (cls.includes('로그')) return Ghost;
+        if (cls.includes('소서러')) return Flame;
+        if (cls.includes('워락')) return Skull;
+        if (cls.includes('위자드')) return Wand2;
+        return Users;
+    };
+
 
     // 2. EFFECTS
     // Real-time Camp Member Count
@@ -182,6 +201,8 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
         );
     }
 
+    const UserIcon = getClassIcon(user?.className);
+
     // 6. RENDER - DESKTOP SIDEBAR
     return (
         <aside className="glass" style={{
@@ -304,7 +325,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         boxShadow: `0 2px 10px ${(user.color || '#f59e0b')}66`
                     }}>
-                        <Users size={20} color="white" />
+                        <UserIcon size={20} color="white" />
                     </div>
                     <div style={{ fontWeight: 'bold', fontSize: '0.95rem', color: 'white' }}>
                         {user.nickname}
