@@ -13,6 +13,8 @@ export default defineConfig({
         name: '발더스게이트 원정대',
         short_name: '발더스 원정대',
         description: '발더스 게이트 3 멀티플레이 파티 관리',
+        start_url: './',
+        scope: './',
         theme_color: '#0a0a10',
         background_color: '#0a0a10',
         display: 'standalone',

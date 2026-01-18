@@ -408,21 +408,21 @@ const ProfileSetup = ({ onComplete, initialData, user, isMobile }) => {
                     }}>
                         {selectedClass && <selectedClass.icon size={50} color="white" />}
                     </div>
-                    <h3 style={{ fontSize: '1.8rem', margin: '0 0 8px', fontWeight: 'bold' }}>{initialData.nickname}</h3>
+                    <h3 style={{ fontSize: '1.8rem', margin: '0 0 8px', fontWeight: 'bold' }}>{data.nickname}</h3>
                     <span style={{ fontSize: '0.95rem', opacity: 0.8, background: 'rgba(255,255,255,0.1)', padding: '6px 12px', borderRadius: '20px' }}>
-                        {initialData.className}
+                        {data.className}
                     </span>
                 </div>
 
                 <div style={{ textAlign: 'left', background: 'rgba(0,0,0,0.2)', padding: '25px', borderRadius: '16px' }}>
                     <p style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '15px', marginBottom: '15px' }}>
                         <span style={{ opacity: 0.6 }}>소속 야영지</span>
-                        <b style={{ fontSize: '1.1rem' }}>{initialData.campId}</b>
+                        <b style={{ fontSize: '1.1rem' }}>{data.campId}</b>
                     </p>
                     <p style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <span style={{ opacity: 0.6 }}>직책</span>
-                        <b style={{ color: initialData.isAdmin ? '#f87171' : '#4ade80' }}>
-                            {initialData.isAdmin ? '영주 (Leader)' : '대원 (Member)'}
+                        <b style={{ color: data.isAdmin ? '#f87171' : '#4ade80' }}>
+                            {data.isAdmin ? '영주 (Leader)' : '대원 (Member)'}
                         </b>
                     </p>
                 </div>
