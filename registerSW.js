@@ -1,1 +1,0 @@
-if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/bg3-raid-manager/sw.js', { scope: '/bg3-raid-manager/' })})}
