@@ -127,7 +127,7 @@ const Layout = () => {
 
         switch (activeTab) {
             case 'home': return <Home {...commonProps} setActiveTab={setActiveTab} />;
-            case 'chat': return <ChatRoom {...commonProps} />;
+            case 'chat': return <ChatRoom {...commonProps} setActiveTab={setActiveTab} />;
             case 'calendar': return <RaidScheduler {...commonProps} />;
             case 'save': return <SaveAnalyzer {...commonProps} />;
             case 'admin': return <CampManagement {...commonProps} />;
@@ -149,7 +149,7 @@ const Layout = () => {
                 setShowSurvivors={setShowSurvivors}
             />
 
-            <main style={{ flex: 1, padding: isMobile ? '20px 20px 90px' : '40px', overflowY: 'auto', position: 'relative' }}>
+            <main style={{ flex: 1, padding: isMobile ? '15px 15px 110px' : '40px', overflowY: 'auto', position: 'relative' }}>
                 {renderContent()}
             </main>
 

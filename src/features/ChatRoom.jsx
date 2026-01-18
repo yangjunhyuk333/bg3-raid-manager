@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, User, Bot, Image as ImageIcon, X, Loader2 } from 'lucide-react';
+import { Send, User, Bot, Image as ImageIcon, X, Loader2, ArrowLeft } from 'lucide-react';
 import { db } from '../lib/firebase';
 import { collection, addDoc, query, onSnapshot, limit, serverTimestamp, where, doc, setDoc } from 'firebase/firestore';
 
-const ChatRoom = ({ user, isMobile }) => {
+const ChatRoom = ({ user, isMobile, setActiveTab }) => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [imagePreview, setImagePreview] = useState(null); // Base64 string
     const [loading, setLoading] = useState(true);
     const [typingUsers, setTypingUsers] = useState([]);
+
+    // ... (rest of state) ...
 
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
@@ -142,20 +144,26 @@ const ChatRoom = ({ user, isMobile }) => {
             display: 'flex',
             flexDirection: 'column',
             padding: 0,
-            position: isMobile ? 'fixed' : 'absolute',
-            top: isMobile ? 'env(safe-area-inset-top)' : 0,
-            left: isMobile ? 0 : 0,
-            right: isMobile ? 0 : 0,
-            bottom: isMobile ? 'calc(65px + env(safe-area-inset-bottom))' : 0,
-            background: isMobile ? 'rgba(20, 20, 30, 0.95)' : 'transparent',
-            zIndex: 50
+            position: isMobile ? 'fixed' : 'relative', // Fixed on mobile
+            top: 0, left: 0, right: 0, bottom: 0,
+            height: isMobile ? '100dvh' : '100%', // Full height
+            background: isMobile ? '#0f0f13' : 'rgba(0,0,0,0.2)', // Solid dark on mobile
+            zIndex: 2000, // Top layer
         }}>
-            <div style={{ padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                <h2 style={{ fontSize: '1.2rem', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Bot color="#4fd1c5" /> 파티 작전 회의실
-                </h2>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>🔒 {user.campId} 야영지 (보안 연결됨)</span>
+            <div style={{ padding: '15px 20px', borderBottom: '1px solid rgba(255,255,255,0.1)', background: isMobile ? 'rgba(20,20,30,0.95)' : 'transparent', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                {isMobile && (
+                    <button
+                        onClick={() => setActiveTab('home')}
+                        style={{ background: 'none', border: 'none', color: 'white', padding: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                    >
+                        <ArrowLeft size={24} />
+                    </button>
+                )}
+                <div style={{ flex: 1 }}>
+                    <h2 style={{ fontSize: '1.2rem', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <Bot color="#4fd1c5" size={20} /> 파티 작전 회의실
+                    </h2>
+                    <span style={{ fontSize: '0.8rem', opacity: 0.6, display: 'block', marginTop: '2px' }}>🔒 {user.campId} 야영지</span>
                 </div>
             </div>
 
