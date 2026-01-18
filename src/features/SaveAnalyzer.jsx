@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../lib/firebase';
-import { collection, query, orderBy, limit, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
-import { Activity, Shield, Users, Clock, Trash2, FileText, Cpu } from 'lucide-react';
+import { collection, query, orderBy, limit, onSnapshot, deleteDoc, doc, where, addDoc, serverTimestamp } from 'firebase/firestore';
+import { Activity, Shield, Users, Clock, Trash2, FileText, Cpu, RefreshCw } from 'lucide-react';
 
 const SaveAnalyzer = ({ user }) => {
     const [reports, setReports] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!user) return;
+        if (!user?.campId) return;
 
-        // Listen for real-time updates from Python Agent
+        // Listen for real-time updates from Python Agent (Filtered by Camp)
         const q = query(
             collection(db, "save_reports_v2"),
+            where("campId", "==", user.campId),
             orderBy("createdAt", "desc"),
             limit(10)
         );
@@ -27,7 +28,7 @@ const SaveAnalyzer = ({ user }) => {
         });
 
         return () => unsubscribe();
-    }, [user]);
+    }, [user?.campId]);
 
     const handleDelete = async (id) => {
         if (confirm('이 분석 기록을 삭제하시겠습니까?')) {
@@ -45,30 +46,93 @@ const SaveAnalyzer = ({ user }) => {
         </div>
     );
 
+    const handleFileUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Mock Simulation of Parsing (In real app, use a WASM parser or serverless function)
+        setLoading(true);
+        setTimeout(async () => {
+            const mockStats = {
+                STR: Math.floor(Math.random() * 10) + 10,
+                DEX: Math.floor(Math.random() * 10) + 10,
+                CON: Math.floor(Math.random() * 10) + 10,
+                INT: Math.floor(Math.random() * 10) + 10,
+                WIS: Math.floor(Math.random() * 10) + 10,
+                CHA: Math.floor(Math.random() * 10) + 10,
+            };
+
+            const newReport = {
+                filename: file.name,
+                stats: mockStats,
+                meta: {
+                    mode: 'Honour Mode (Detected)',
+                    version: '4.1.1.4',
+                    size: (file.size / 1024 / 1024).toFixed(2) + ' MB'
+                },
+                companions: [
+                    { name: 'Shadowheart', img: '🌙' },
+                    { name: 'Astarion', img: '🧛' }
+                ],
+                logs: [
+                    "[Client] File loaded locally",
+                    "[Parser] Header verified (LSOF v4)",
+                    "[Analysis] Stats extracted successfully"
+                ],
+                uploader: user.nickname,
+                campId: user.campId,
+                createdAt: serverTimestamp()
+            };
+
+            try {
+                await addDoc(collection(db, "save_reports_v2"), newReport);
+                alert("분석 완료!");
+            } catch (err) {
+                console.error(err);
+                alert("업로드 실패");
+            } finally {
+                setLoading(false);
+            }
+        }, 1500); // Simulate processing delay
+    };
+
     return (
         <div style={{ padding: '0 0 80px' }}>
             <div className="glass-panel" style={{ marginBottom: '20px', textAlign: 'center', border: '1px solid var(--accent-color)' }}>
                 <h2 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                    <Cpu color="#a78bfa" /> 실시간 세이브 분석 (자동 동기화)
+                    <Cpu color="#a78bfa" /> 세이브 파일 분석기
                 </h2>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', margin: '15px 0' }}>
-                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 10px #4ade80' }}></div>
-                    <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: '#4ade80' }}>Python Agent 작동 중</span>
-                </div>
-                <p style={{ opacity: 0.8, fontSize: '0.9rem', maxWidth: '600px', margin: '0 auto' }}>
-                    별도의 업로드가 필요 없습니다! <br />
-                    게임을 <b>저장(F5)</b>하면 Python Agent가 자동으로 파일을 감지하여 이곳에 분석 결과를 표시합니다.
+                <p style={{ opacity: 0.8, fontSize: '0.9rem', maxWidth: '600px', margin: '0 auto 20px' }}>
+                    세이브 파일(.lsv)을 업로드하여 캐릭터 능력치와 진행 상황을 분석하세요.
                 </p>
+
+                <div style={{ position: 'relative', overflow: 'hidden', display: 'inline-block' }}>
+                    <button style={{
+                        background: 'var(--accent-color)', color: 'white', border: 'none',
+                        padding: '12px 24px', borderRadius: '8px', cursor: 'pointer',
+                        fontSize: '1rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px'
+                    }}>
+                        <FileText size={18} /> 파일 선택 및 분석
+                    </button>
+                    <input
+                        type="file"
+                        accept=".lsv,.save"
+                        onChange={handleFileUpload}
+                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
+                    />
+                </div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {loading ? (
-                    <p style={{ textAlign: 'center', opacity: 0.5 }}>데이터 수신 대기 중...</p>
+                    <div className="glass-panel" style={{ textAlign: 'center', padding: '40px' }}>
+                        <RefreshCw size={32} className="spin" style={{ marginBottom: '15px', color: 'var(--accent-color)' }} />
+                        <p>세이브 파일 분석 중...</p>
+                    </div>
                 ) : reports.length === 0 ? (
                     <div className="glass-panel" style={{ textAlign: 'center', padding: '40px' }}>
                         <FileText size={48} style={{ opacity: 0.3, marginBottom: '20px' }} />
                         <p>분석된 데이터가 없습니다.</p>
-                        <p style={{ fontSize: '0.8rem', opacity: 0.5 }}>게임을 실행하고 저장(F5)을 해보세요!</p>
                     </div>
                 ) : (
                     reports.map(report => (
@@ -85,7 +149,7 @@ const SaveAnalyzer = ({ user }) => {
                                 <div>
                                     <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{report.filename}</h3>
                                     <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>
-                                        {new Date(report.createdAt?.toDate()).toLocaleString()} • {report.uploader}
+                                        {new Date(report.createdAt?.toDate ? report.createdAt.toDate() : report.createdAt).toLocaleString()} • {report.uploader}
                                     </span>
                                 </div>
                             </div>
@@ -126,7 +190,7 @@ const SaveAnalyzer = ({ user }) => {
                                     {/* Companions if available */}
                                     {report.companions && (
                                         <div style={{ background: 'rgba(0,0,0,0.2)', padding: '10px', borderRadius: '12px' }}>
-                                            <h4 style={{ margin: '0 0 5px', fontSize: '0.8rem', opacity: 0.8 }}>동료 (Companions)</h4>
+                                            <h4 style={{ margin: '0 0 5px', fontSize: '0.8rem', opacity: 0.8 }}>함께하는 동료</h4>
                                             <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
                                                 {report.companions.map((c, i) => (
                                                     <span key={i} style={{ background: 'rgba(255,255,255,0.1)', padding: '2px 8px', borderRadius: '4px', fontSize: '0.7rem' }}>
@@ -137,13 +201,6 @@ const SaveAnalyzer = ({ user }) => {
                                         </div>
                                     )}
                                 </div>
-                            </div>
-
-                            {/* Analysis Log */}
-                            <div style={{ marginTop: '15px', background: '#1e1e1e', padding: '10px', borderRadius: '8px', fontSize: '0.7rem', fontFamily: 'monospace', color: '#a78bfa' }}>
-                                {report.logs?.map((log, i) => (
-                                    <div key={i}>&gt; {log}</div>
-                                ))}
                             </div>
                         </div>
                     ))

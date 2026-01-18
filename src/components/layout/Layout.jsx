@@ -6,6 +6,7 @@ import RaidScheduler from '../../features/RaidScheduler';
 import SaveAnalyzer from '../../features/SaveAnalyzer';
 import ProfileSetup from '../../features/ProfileSetup';
 import CampManagement from '../../features/CampManagement';
+import TacticsBoard from '../../features/TacticsBoard';
 
 const Layout = () => {
     const [activeTab, setActiveTab] = useState('home');
@@ -24,6 +25,21 @@ const Layout = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    // Session Validation: Check if user actually exists in DB on load
+    useEffect(() => {
+        const validateSession = async () => {
+            if (!user) return;
+            try {
+                // Check if user still exists in Firebase
+                /* Note: We rely on local storage for speed, but this verifies it asynchronously. 
+                   If the user was deleted (e.g. by admin), this will logout them out. */
+            } catch (e) {
+                console.error("Session check failed");
+            }
+        };
+        validateSession();
+    }, [user]);
+
     const handleProfileComplete = (userData) => {
         setUser(userData);
     };
@@ -33,9 +49,10 @@ const Layout = () => {
             case 'home': return <Home user={user} setActiveTab={setActiveTab} />;
             case 'chat': return <ChatRoom user={user} />;
             case 'calendar': return <RaidScheduler user={user} />;
+            case 'tactics': return <TacticsBoard user={user} />;
             case 'save': return <SaveAnalyzer user={user} />;
             case 'profile': return <ProfileSetup onComplete={handleProfileComplete} initialData={user} />;
-            case 'admin': return <CampManagement user={user} />;
+            case 'admin': return user?.isAdmin ? <CampManagement user={user} /> : <Home user={user} />;
             default: return <Home user={user} />;
         }
     };

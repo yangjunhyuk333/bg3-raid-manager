@@ -1,26 +1,34 @@
 import { useState, useEffect } from 'react';
-import Calendar from 'react-calendar'; // Calendar Import
-import { Calendar as CalendarIcon, Plus, Trash2, Users, Clock } from 'lucide-react';
+import Calendar from 'react-calendar';
+import { Calendar as CalendarIcon, Plus, Trash2, Users, Clock, CheckCircle2, TrendingUp, X } from 'lucide-react';
 import { db } from '../lib/firebase';
-import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, updateDoc } from 'firebase/firestore';
-// import 'react-calendar/dist/Calendar.css'; // Global CSS already handles this potentially, but let's check styles
+import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, updateDoc, where } from 'firebase/firestore';
 
 const RaidScheduler = ({ user }) => {
     const [schedules, setSchedules] = useState([]);
-    const [date, setDate] = useState(new Date()); // Calendar Date State
+    const [date, setDate] = useState(new Date());
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
 
+    // Form State
     const [newItem, setNewItem] = useState({
         title: '',
         date: '',
-        time: '',
-        type: 'raid',
-        members: ''
+        type: 'vote', // 'vote' | 'fixed'
+        timeSlots: [], // Array of { time: '20:00', votes: [] }
+        fixedTime: '',
     });
+    const [tempTimeSlot, setTempTimeSlot] = useState('');
 
     useEffect(() => {
-        const q = query(collection(db, "schedules"), orderBy("date"), orderBy("time"));
+        if (!user?.campId) return;
+
+        const q = query(
+            collection(db, "schedules"),
+            where("campId", "==", user.campId),
+            orderBy("date")
+        );
+
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const data = snapshot.docs.map(doc => ({
                 id: doc.id,
@@ -30,19 +38,36 @@ const RaidScheduler = ({ user }) => {
             setLoading(false);
         });
         return () => unsubscribe();
-    }, []);
+    }, [user?.campId]);
+
+    const handleAddTimeSlot = () => {
+        if (tempTimeSlot && !newItem.timeSlots.some(s => s.time === tempTimeSlot)) {
+            setNewItem(prev => ({
+                ...prev,
+                timeSlots: [...prev.timeSlots, { time: tempTimeSlot, votes: [] }].sort((a, b) => a.time.localeCompare(b.time))
+            }));
+            setTempTimeSlot('');
+        }
+    };
+
+    const handleRemoveTimeSlot = (time) => {
+        setNewItem(prev => ({
+            ...prev,
+            timeSlots: prev.timeSlots.filter(t => t.time !== time)
+        }));
+    };
 
     const handleAdd = async (e) => {
         e.preventDefault();
         try {
             await addDoc(collection(db, "schedules"), {
                 ...newItem,
-                members: newItem.members.split(',').map(m => m.trim()).filter(m => m),
-                creator: user?.nickname || 'Anonymous',
-                // Ensure date is consistent with calendar selection if used from modal
+                campId: user.campId,
+                creator: user.nickname,
+                createdAt: new Date().toISOString()
             });
             setShowModal(false);
-            setNewItem({ title: '', date: '', time: '', type: 'raid', members: '' });
+            setNewItem({ title: '', date: '', type: 'vote', timeSlots: [], fixedTime: '' });
         } catch (error) {
             console.error("Error adding schedule: ", error);
             alert("일정 추가 실패: " + error.message);
@@ -51,52 +76,38 @@ const RaidScheduler = ({ user }) => {
 
     const handleDelete = async (id) => {
         if (window.confirm('정말 삭제하시겠습니까?')) {
-            try {
-                await deleteDoc(doc(db, "schedules", id));
-            } catch (error) {
-                console.error("Error deleting schedule: ", error);
-                alert("삭제 실패");
-            }
+            await deleteDoc(doc(db, "schedules", id));
         }
     };
 
-    const handleVote = async (id, currentVotes = []) => {
-        if (!user) return alert("로그인이 필요합니다.");
-        const userVoteIndex = currentVotes.indexOf(user.nickname); // Simple vote by nickname for now
+    const handleVote = async (scheduleId, slotIndex, currentVotes) => {
+        const schedule = schedules.find(s => s.id === scheduleId);
+        if (!schedule) return;
 
-        let newVotes;
-        if (userVoteIndex !== -1) {
-            newVotes = currentVotes.filter(v => v !== user.nickname); // Toggle off
+        const userNickname = user.nickname;
+        const newSlots = [...schedule.timeSlots];
+        const targetSlot = { ...newSlots[slotIndex] };
+
+        if (targetSlot.votes.includes(userNickname)) {
+            targetSlot.votes = targetSlot.votes.filter(v => v !== userNickname);
         } else {
-            newVotes = [...currentVotes, user.nickname]; // Toggle on
+            targetSlot.votes = [...targetSlot.votes, userNickname];
         }
 
-        try {
-            const docRef = doc(db, "schedules", id);
-            // We need to update existing doc. specific update. 
-            // Ideally we should use updateDoc but for replace_file_content context I'll assume we can use setDoc with merge or just need to import updateDoc. 
-            // Wait, I need to import updateDoc first. I will add it to the imports in a separate edit if needed or assume I can replace the import line too.
-            // Actually, the previous file had addDoc, deleteDoc, doc, onSnapshot, query, orderBy. updateDoc is missing.
-            // I'll stick to logic here and fix imports in next step/same step if I can target it. 
-            // I will use a separate tool call to fix imports.
-            // For now, let's write the logic presuming updateDoc is available or use what we have? No, cannot use what we don't have.
-            // I'll add the logic call here.
-            await import('firebase/firestore').then(module => {
-                module.updateDoc(docRef, { votes: newVotes });
-            });
-        } catch (error) {
-            console.error("Error voting:", error);
-            alert("투표 실패");
-        }
+        newSlots[slotIndex] = targetSlot;
+
+        await updateDoc(doc(db, "schedules", scheduleId), {
+            timeSlots: newSlots
+        });
     };
 
     // Filter schedules for the selected date on calendar
-    const selectedDateStr = date.toLocaleDateString('en-CA'); // YYYY-MM-DD
+    const selectedDateStr = date.toLocaleDateString('en-CA');
     const filteredSchedules = schedules.filter(s => s.date === selectedDateStr);
 
-    const tileContent = ({ date, view }) => {
+    const tileContent = ({ date: tileDate, view }) => {
         if (view === 'month') {
-            const dateStr = date.toLocaleDateString('en-CA');
+            const dateStr = tileDate.toLocaleDateString('en-CA');
             const hasEvent = schedules.some(s => s.date === dateStr);
             if (hasEvent) {
                 return <div style={{ height: '6px', width: '6px', background: '#f87171', borderRadius: '50%', margin: '2px auto' }}></div>
@@ -106,7 +117,6 @@ const RaidScheduler = ({ user }) => {
 
     return (
         <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-
             {/* Calendar Section */}
             <div className="glass-panel" style={{ padding: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -115,11 +125,11 @@ const RaidScheduler = ({ user }) => {
                     </h2>
                     <button
                         onClick={() => {
-                            setNewItem(prev => ({ ...prev, date: selectedDateStr })); // Pre-fill date
+                            setNewItem(prev => ({ ...prev, date: selectedDateStr }));
                             setShowModal(true);
                         }}
                         className="glass-button"
-                        style={{ background: 'var(--accent-color)', border: 'none' }}
+                        style={{ background: 'var(--accent-color)', border: 'none', padding: '10px 20px', borderRadius: '8px', color: 'white', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px' }}
                     >
                         <Plus size={18} /> 일정 추가
                     </button>
@@ -141,11 +151,11 @@ const RaidScheduler = ({ user }) => {
                     onChange={setDate}
                     value={date}
                     tileContent={tileContent}
-                    formatDay={(locale, date) => date.getDate()} // 숫자만 표시
+                    formatDay={(locale, date) => date.getDate()}
                 />
             </div>
 
-            {/* List Section for Selected Date */}
+            {/* List Section */}
             <div className="glass-panel" style={{ padding: '20px', minHeight: '200px' }}>
                 <h3 style={{ margin: '0 0 15px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>
                     {date.toLocaleDateString()} 일정 목록
@@ -155,45 +165,69 @@ const RaidScheduler = ({ user }) => {
                     filteredSchedules.length === 0 ? (
                         <div style={{ textAlign: 'center', opacity: 0.5, padding: '20px' }}>이 날짜에 등록된 일정이 없습니다.</div>
                     ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '15px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '15px' }}>
                             {filteredSchedules.map((item) => (
                                 <div key={item.id} style={{
-                                    background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px',
+                                    background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '12px',
                                     border: '1px solid rgba(255,255,255,0.1)'
                                 }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                                        <span style={{
-                                            fontSize: '0.8rem', padding: '2px 8px', borderRadius: '10px',
-                                            background: item.type === 'raid' ? 'rgba(248, 113, 113, 0.2)' : 'rgba(96, 165, 250, 0.2)',
-                                            color: item.type === 'raid' ? '#fca5a5' : '#93c5fd'
-                                        }}>
-                                            {item.type === 'raid' ? '⚔️ 레이드' : '📜 스토리'}
-                                        </span>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                                        <div style={{ display: 'flex', gap: '5px' }}>
+                                            <span style={{
+                                                fontSize: '0.7rem', padding: '2px 8px', borderRadius: '10px',
+                                                background: item.type === 'vote' ? 'rgba(167, 139, 250, 0.2)' : 'rgba(248, 113, 113, 0.2)',
+                                                color: item.type === 'vote' ? '#a78bfa' : '#fca5a5'
+                                            }}>
+                                                {item.type === 'vote' ? '🗳️ 시간 조율' : '⚔️ 확정 일정'}
+                                            </span>
+                                            <span style={{ fontSize: '0.7rem', opacity: 0.5 }}>by {item.creator}</span>
+                                        </div>
                                         <button onClick={() => handleDelete(item.id)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}>
                                             <Trash2 size={14} />
                                         </button>
                                     </div>
-                                    <h4 style={{ margin: '5px 0', fontSize: '1.1rem' }}>{item.title}</h4>
-                                    <div style={{ fontSize: '0.9rem', opacity: 0.7, display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                            <Clock size={14} /> {item.time}
+
+                                    <h4 style={{ margin: '0 0 15px', fontSize: '1.2rem' }}>{item.title}</h4>
+
+                                    {item.type === 'fixed' ? (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.1rem', color: 'var(--accent-color)' }}>
+                                            <Clock size={16} /> {item.fixedTime}
                                         </div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                            <Users size={14} /> {item.members.join(', ')}
+                                    ) : (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            {item.timeSlots?.map((slot, idx) => {
+                                                const maxVotes = Math.max(...item.timeSlots.map(s => s.votes.length));
+                                                const isTop = maxVotes > 0 && slot.votes.length === maxVotes;
+                                                const iVoted = slot.votes.includes(user.nickname);
+
+                                                return (
+                                                    <div key={idx}
+                                                        onClick={() => handleVote(item.id, idx, slot.votes)}
+                                                        style={{
+                                                            padding: '10px', borderRadius: '8px',
+                                                            background: iVoted ? 'rgba(78, 209, 197, 0.1)' : 'rgba(0,0,0,0.2)',
+                                                            border: iVoted ? '1px solid var(--accent-color)' : '1px solid transparent',
+                                                            cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                                            transition: 'all 0.2s'
+                                                        }}
+                                                    >
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                            {isTop && <TrendingUp size={14} color="#fbbf24" />}
+                                                            <span style={{ fontWeight: isTop ? 'bold' : 'normal', color: isTop ? '#fbbf24' : 'white' }}>{slot.time}</span>
+                                                        </div>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                                            <div style={{ display: 'flex', marginRight: '5px' }}>
+                                                                {slot.votes.map((v, i) => (
+                                                                    <div key={i} title={v} style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'white', opacity: 0.5, marginLeft: '2px' }} />
+                                                                ))}
+                                                            </div>
+                                                            <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>{slot.votes.length}표</span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
-                                        <div style={{ marginTop: '5px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            <button
-                                                onClick={() => handleVote(item.id, item.votes)}
-                                                style={{
-                                                    padding: '4px 8px', borderRadius: '4px', border: 'none', cursor: 'pointer',
-                                                    background: item.votes?.includes(user?.nickname) ? 'var(--accent-color)' : 'rgba(255,255,255,0.1)',
-                                                    color: 'white', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px'
-                                                }}
-                                            >
-                                                👍 투표 {item.votes?.length || 0}
-                                            </button>
-                                        </div>
-                                    </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -207,58 +241,47 @@ const RaidScheduler = ({ user }) => {
                     background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(5px)',
                     display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
                 }} onClick={() => setShowModal(false)}>
-                    <div
-                        className="glass-panel"
-                        style={{ width: '400px', padding: '30px' }}
-                        onClick={e => e.stopPropagation()}
-                    >
-                        <h3>새 일정 추가</h3>
+                    <div className="glass-panel" style={{ width: '450px', padding: '30px' }} onClick={e => e.stopPropagation()}>
+                        <h3 style={{ margin: '0 0 20px' }}>새 일정 추가</h3>
                         <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                             <input
                                 placeholder="일정 제목 (예: 3막 보스전)"
                                 value={newItem.title}
                                 onChange={e => setNewItem({ ...newItem, title: e.target.value })}
                                 required
-                                style={{ padding: '10px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', borderRadius: '8px' }}
+                                style={{ padding: '12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', borderRadius: '8px' }}
                             />
                             <div style={{ display: 'flex', gap: '10px' }}>
-                                <input
-                                    type="date"
-                                    value={newItem.date}
-                                    onChange={e => setNewItem({ ...newItem, date: e.target.value })}
-                                    required
-                                    style={{ flex: 1, padding: '10px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', borderRadius: '8px' }}
-                                />
-                                <input
-                                    type="time"
-                                    value={newItem.time}
-                                    onChange={e => setNewItem({ ...newItem, time: e.target.value })}
-                                    required
-                                    style={{ flex: 1, padding: '10px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', borderRadius: '8px' }}
-                                />
+                                <input type="date" value={newItem.date} onChange={e => setNewItem({ ...newItem, date: e.target.value })} required style={{ flex: 1, padding: '12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', borderRadius: '8px' }} />
+                                <select value={newItem.type} onChange={e => setNewItem({ ...newItem, type: e.target.value })} style={{ padding: '12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', borderRadius: '8px' }}>
+                                    <option value="vote" style={{ color: 'black' }}>🗳️ 시간 조율</option>
+                                    <option value="fixed" style={{ color: 'black' }}>⚔️ 확정 일정</option>
+                                </select>
                             </div>
-                            <select
-                                value={newItem.type}
-                                onChange={e => setNewItem({ ...newItem, type: e.target.value })}
-                                style={{ padding: '10px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', borderRadius: '8px' }}
-                            >
-                                <option value="raid" style={{ color: 'black' }}>⚔️ 레이드/전투</option>
-                                <option value="story" style={{ color: 'black' }}>📜 스토리 진행</option>
-                            </select>
-                            <input
-                                placeholder="참여 멤버 (쉼표로 구분)"
-                                value={newItem.members}
-                                onChange={e => setNewItem({ ...newItem, members: e.target.value })}
-                                style={{ padding: '10px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', borderRadius: '8px' }}
-                            />
+
+                            {newItem.type === 'vote' ? (
+                                <div style={{ background: 'rgba(0,0,0,0.2)', padding: '15px', borderRadius: '8px' }}>
+                                    <label style={{ fontSize: '0.8rem', opacity: 0.7, marginBottom: '5px', display: 'block' }}>후보 시간 추가</label>
+                                    <div style={{ display: 'flex', gap: '5px', marginBottom: '10px' }}>
+                                        <input type="time" value={tempTimeSlot} onChange={e => setTempTimeSlot(e.target.value)} style={{ flex: 1, padding: '8px', borderRadius: '6px', border: 'none' }} />
+                                        <button type="button" onClick={handleAddTimeSlot} style={{ padding: '8px 15px', borderRadius: '6px', background: 'var(--accent-color)', color: 'white', border: 'none', cursor: 'pointer' }}>추가</button>
+                                    </div>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                                        {newItem.timeSlots.map(slot => (
+                                            <span key={slot.time} style={{ background: 'rgba(255,255,255,0.1)', padding: '5px 10px', borderRadius: '15px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                                {slot.time}
+                                                <X size={12} style={{ cursor: 'pointer' }} onClick={() => handleRemoveTimeSlot(slot.time)} />
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : (
+                                <input type="time" required value={newItem.fixedTime} onChange={e => setNewItem({ ...newItem, fixedTime: e.target.value })} style={{ padding: '12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', borderRadius: '8px' }} />
+                            )}
 
                             <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                                <button type="button" onClick={() => setShowModal(false)} style={{ flex: 1, padding: '10px', borderRadius: '8px', background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', color: 'white', cursor: 'pointer' }}>
-                                    취소
-                                </button>
-                                <button type="submit" style={{ flex: 1, padding: '10px', borderRadius: '8px', background: 'var(--accent-color)', border: 'none', color: 'white', cursor: 'pointer' }}>
-                                    등록
-                                </button>
+                                <button type="button" onClick={() => setShowModal(false)} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', color: 'white', cursor: 'pointer' }}>취소</button>
+                                <button type="submit" style={{ flex: 1, padding: '12px', borderRadius: '8px', background: 'var(--accent-color)', border: 'none', color: 'white', cursor: 'pointer' }}>등록</button>
                             </div>
                         </form>
                     </div>
