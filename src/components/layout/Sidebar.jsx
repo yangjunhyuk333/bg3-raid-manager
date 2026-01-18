@@ -8,6 +8,8 @@ import { db } from '../../lib/firebase';
 const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
     // Real-time Camp Users Count
     const [onlineUsersCount, setOnlineUsersCount] = React.useState(0);
+    const [maxMembers, setMaxMembers] = React.useState(4);
+    const isAdmin = user?.isAdmin === true;
     const [showAdminReset, setShowAdminReset] = React.useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
 
