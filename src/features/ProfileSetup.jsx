@@ -396,9 +396,9 @@ const ProfileSetup = ({ onComplete, initialData, isMobile }) => {
                         gap: isMobile ? '20px' : '60px', // Reduced gap on mobile
                         width: '100%'
                     }}>
-                        {/* Logo Section */}
+                        {/* Logo & Welcome Section */}
                         <div style={{ flex: '1 1 300px', display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
-                            <div className="logo-wrapper" style={{ position: 'relative', maxWidth: '420px', width: '100%' }}>
+                            <div className="logo-wrapper" style={{ position: 'relative', maxWidth: isMobile ? '240px' : '420px', width: '100%' }}>
                                 {/* The Base Image */}
                                 <img
                                     src={logo}
@@ -418,6 +418,21 @@ const ProfileSetup = ({ onComplete, initialData, isMobile }) => {
                                     }}
                                 />
                             </div>
+
+                            {/* Intro Text - Moved here and resized for mobile */}
+                            <p style={{
+                                marginTop: isMobile ? '10px' : '30px',
+                                opacity: 0.8,
+                                fontSize: isMobile ? '0.75rem' : '0.95rem', // Smaller on mobile
+                                lineHeight: '1.6',
+                                fontWeight: '400',
+                                textAlign: 'center',
+                                color: 'rgba(255,255,255,0.9)'
+                            }}>
+                                동료들과 함께 나만의 이야기를 만들어보세요.<br />
+                                <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>발더스 게이트 3 원정대</span>를 위한<br />
+                                필수 컴패니언 앱
+                            </p>
                         </div>
 
                         {/* Buttons Section */}
@@ -441,16 +456,6 @@ const ProfileSetup = ({ onComplete, initialData, isMobile }) => {
                                 <Crown size={20} />
                                 새 야영지 건설 (관리자)
                             </button>
-
-                            <p style={{
-                                marginTop: '10px', opacity: 0.6, fontSize: '0.85rem',
-                                lineHeight: '1.5', fontWeight: '400',
-                                textAlign: 'center'
-                            }}>
-                                동료들과 함께 나만의 이야기를 만들어보세요.<br />
-                                <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>발더스 게이트 3 원정대</span>를 위한<br />
-                                필수 컴패니언 앱
-                            </p>
                         </div>
                     </div>
                 </div>
