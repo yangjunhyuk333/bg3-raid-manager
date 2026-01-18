@@ -8,27 +8,34 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      injectRegister: 'auto', // Ensure injection
+      includeAssets: ['favicon.ico', 'app-icon.jpg'], // Include the jpg
       manifest: {
         name: '발더스게이트 원정대',
         short_name: '발더스 원정대',
         description: '발더스 게이트 3 멀티플레이 파티 관리',
-        start_url: './',
-        scope: './',
+        start_url: '/',
+        scope: '/',
         theme_color: '#0a0a10',
         background_color: '#0a0a10',
         display: 'standalone',
         orientation: 'portrait',
         icons: [
           {
-            src: 'app-icon.jpg',
+            src: '/app-icon.jpg', // Absolute path often safer for root PWA
             sizes: '192x192',
             type: 'image/jpeg'
           },
           {
-            src: 'app-icon.jpg',
+            src: '/app-icon.jpg',
             sizes: '512x512',
             type: 'image/jpeg'
+          },
+          {
+            src: '/app-icon.jpg',
+            sizes: '512x512',
+            type: 'image/jpeg',
+            purpose: 'any maskable' // Attempt to satisfy maskable requirement
           }
         ]
       }

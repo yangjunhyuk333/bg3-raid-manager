@@ -5,7 +5,7 @@ import { collection, query, orderBy, limit, getDocs, where } from 'firebase/fire
 
 import logo from '../assets/logo.svg';
 
-const Home = ({ user, setActiveTab, isMobile, onlineUsersCount, setShowSurvivors, openTactic }) => {
+const Home = ({ user, setActiveTab, isMobile, onlineUsersCount, setShowSurvivors, openTactic, openProfile }) => {
     const [recentRaids, setRecentRaids] = useState([]);
     const [loading, setLoading] = useState(true);
 
