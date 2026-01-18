@@ -61,13 +61,13 @@ body {
   /* The Shine Gradient */
   background: linear-gradient(to right,
       transparent 0%,
-      rgba(255, 255, 255, 0) 30%,
-      rgba(255, 255, 255, 0.9) 50%,
-      rgba(255, 255, 255, 0) 70%,
+      rgba(255, 255, 255, 0) 40%,
+      rgba(255, 255, 255, 0.8) 50%,
+      rgba(255, 255, 255, 0) 60%,
       transparent 100%);
   background-size: 200% 100%;
-  animation: shineMove 6s infinite linear;
-  /* Slower total cycle (6s) */
+  animation: shineMove 3.5s infinite ease-in-out;
+  /* Faster cycle (3.5s) */
 
   /* Critical: Mask the shine to the logo's shape */
   /* -webkit-mask-image will be set inline in React to use the correct imported path */
@@ -87,19 +87,18 @@ body {
 @keyframes shineMove {
   0% {
     background-position: 200% 0;
+    /* Start far right */
   }
 
-  /* Start completely off-screen right */
-  40% {
+  50% {
     background-position: -200% 0;
+    /* Move to far left */
   }
 
-  /* Move to left (slower pass: 40% of 6s = 2.4s duration) */
   100% {
     background-position: -200% 0;
+    /* Wait off-screen */
   }
-
-  /* Stay off-screen for the rest */
 }
 
 #root {

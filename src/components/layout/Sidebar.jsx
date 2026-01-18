@@ -75,7 +75,11 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
     };
 
     // 4. MENU ITEMS & ASSETS
-    const bg3Classes = ["Barbarian", "Bard", "Cleric", "Druid", "Fighter", "Monk", "Paladin", "Ranger", "Rogue", "Sorcerer", "Warlock", "Wizard"];
+    // Using Korean class names to match DB data from ProfileSetup.jsx
+    const bg3Classes = [
+        "바바리안", "바드", "클레릭", "드루이드", "파이터", "몽크",
+        "팔라딘", "레인저", "로그", "소서러", "워락", "위자드"
+    ];
 
     const menuItems = [
         { id: 'home', label: '홈', icon: Home },
