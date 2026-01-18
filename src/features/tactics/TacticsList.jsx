@@ -23,16 +23,24 @@ const TacticsList = ({ user, initialTacticId, clearInitialTactic }) => {
 
         const q = query(
             collection(db, "tactics"),
-            where("campId", "==", user.campId),
-            orderBy("createdAt", "desc")
+            where("campId", "==", user.campId)
+            // orderBy("createdAt", "desc") // Removed to avoid index requirement
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            const data = snapshot.docs.map(doc => ({
+            const tacticsData = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             }));
-            setTactics(data);
+
+            // Client-side sorting
+            tacticsData.sort((a, b) => {
+                const timeA = a.createdAt?.seconds || 0;
+                const timeB = b.createdAt?.seconds || 0;
+                return timeB - timeA;
+            });
+
+            setTactics(tacticsData);
             setLoading(false);
         }, (error) => {
             console.error("Error fetching tactics:", error);

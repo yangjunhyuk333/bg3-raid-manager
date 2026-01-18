@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ArrowLeft, Save, MousePointer, Type, Square, Image as ImageIcon, Move, Plus, Sparkles, User, Skull, Youtube, ExternalLink, PlayCircle, Users, Edit, X } from 'lucide-react';
+import { ArrowLeft, Save, MousePointer, Type, Square, Image as ImageIcon, Move, Plus, Sparkles, User, Skull, Youtube, ExternalLink, PlayCircle, Users, Edit, X, Axe, Music, Heart, Leaf, Sword, Zap, Shield, Target, Ghost, Flame, Wand2 } from 'lucide-react';
 import { doc, updateDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
@@ -128,6 +128,24 @@ const TacticsEditor = ({ user, tacticId, initialData, onBack, isMobile, isStanda
         setLastPointer({ x: e.clientX, y: e.clientY });
     };
 
+    // Helper: Get Class Icon
+    const getClassIcon = (cls) => {
+        if (!cls) return User;
+        if (cls.includes('바바리안')) return Axe;
+        if (cls.includes('바드')) return Music;
+        if (cls.includes('클레릭')) return Heart;
+        if (cls.includes('드루이드')) return Leaf;
+        if (cls.includes('파이터')) return Sword;
+        if (cls.includes('몽크')) return Zap;
+        if (cls.includes('팔라딘')) return Shield;
+        if (cls.includes('레인저')) return Target;
+        if (cls.includes('로그')) return Ghost;
+        if (cls.includes('소서러')) return Flame;
+        if (cls.includes('워락')) return Skull;
+        if (cls.includes('위자드')) return Wand2;
+        return User;
+    };
+
     const startEditing = (el) => {
         if (el.type === 'text') {
             setEditingId(el.id);
@@ -137,6 +155,12 @@ const TacticsEditor = ({ user, tacticId, initialData, onBack, isMobile, isStanda
             const url = prompt("유튜브 영상 URL을 입력하세요:", currentUrl);
             if (url) {
                 updateElement(el.id, { content: url });
+            }
+        } else if (el.type === 'member') {
+            const classes = ["바바리안", "바드", "클레릭", "드루이드", "파이터", "몽크", "팔라딘", "레인저", "로그", "소서러", "워락", "위자드"];
+            const newClass = prompt(`직업을 입력하세요:\n(${classes.join(', ')})`, el.content === '파티원' ? '' : el.content);
+            if (newClass) {
+                updateElement(el.id, { content: newClass });
             }
         }
     };
@@ -397,10 +421,13 @@ const TacticsEditor = ({ user, tacticId, initialData, onBack, isMobile, isStanda
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         boxShadow: '0 0 15px rgba(59, 130, 246, 0.4)'
                                     }}>
-                                        <Users size={26} color="white" />
+                                        {(() => {
+                                            const Icon = getClassIcon(el.content);
+                                            return <Icon size={26} color="white" />;
+                                        })()}
                                     </div>
                                     <span style={{ fontSize: '0.75rem', marginTop: '6px', background: 'rgba(0,0,0,0.8)', color: 'white', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold' }}>
-                                        파티원
+                                        {el.content}
                                     </span>
                                 </div>
                             )}

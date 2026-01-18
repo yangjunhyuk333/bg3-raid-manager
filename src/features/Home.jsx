@@ -40,9 +40,14 @@ const Home = ({ user, setActiveTab, isMobile, onlineUsersCount, setShowSurvivors
 
                 // Fetch Tactics
                 if (user?.campId) {
-                    const qTactics = query(collection(db, "tactics"), where("campId", "==", user.campId), orderBy("createdAt", "desc"), limit(3));
+                    const qTactics = query(collection(db, "tactics"), where("campId", "==", user.campId)); // Removed orderBy
                     const snapshotTactics = await getDocs(qTactics);
-                    setRecentTactics(snapshotTactics.docs.map(d => ({ id: d.id, ...d.data() })));
+                    const tacticsData = snapshotTactics.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                    // Client-side sort
+                    tacticsData.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+                    setRecentTactics(tacticsData.slice(0, 3)); // Limit to 3 after sort
                 }
 
             } catch (e) {
@@ -89,9 +94,30 @@ const Home = ({ user, setActiveTab, isMobile, onlineUsersCount, setShowSurvivors
                 </div>
             )}
 
+            {/* Mobile: Online Users Pill (Moved here & Compacted) */}
+            {isMobile && (
+                <div
+                    onClick={() => setShowSurvivors && setShowSurvivors(true)}
+                    style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                        background: 'rgba(20, 20, 30, 0.6)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '15px', padding: '5px 12px',
+                        margin: '0 auto 15px', maxWidth: 'fit-content', // Centered and compact
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
+                    }}
+                >
+                    <Users size={12} color="#4ade80" />
+                    <span style={{ color: '#4ade80', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                        {onlineUsersCount || 0}/4명 접속 중
+                    </span>
+                </div>
+            )}
+
             {/* Hero Section: Glass Pill Card (Text Left, Icon Right) */}
             <div
-                onClick={openProfile}
+                onClick={() => !isMobile && openProfile()}
                 style={{
                     width: '100%',
                     minHeight: '90px',
@@ -103,7 +129,7 @@ const Home = ({ user, setActiveTab, isMobile, onlineUsersCount, setShowSurvivors
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between', // Space Between
                     padding: isMobile ? '20px 25px' : '0 40px',
                     textAlign: 'left',
-                    cursor: 'pointer',
+                    cursor: isMobile ? 'default' : 'pointer',
                     transition: 'transform 0.2s'
                 }}
                 onMouseOver={(e) => isMobile ? null : e.currentTarget.style.transform = 'scale(1.01)'}
@@ -146,29 +172,6 @@ const Home = ({ user, setActiveTab, isMobile, onlineUsersCount, setShowSurvivors
                     })()}
                 </div>
             </div>
-
-            {/* Mobile: Online Users Pill (Moved here from Floating Top Left as desired) */}
-            {isMobile && (
-                <div
-                    onClick={() => setShowSurvivors && setShowSurvivors(true)}
-                    style={{
-                        display: 'inline-flex', alignItems: 'center', gap: '8px',
-                        background: 'rgba(20, 20, 30, 0.6)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        borderRadius: '20px', padding: '8px 16px',
-                        marginBottom: '20px', cursor: 'pointer',
-                        boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
-                        position: 'relative', zIndex: 10, userSelect: 'none'
-                    }}
-                >
-                    <Users size={14} color="#4ade80" />
-                    <span style={{ color: '#4ade80', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                        {onlineUsersCount || 0}/4명 접속 중
-                    </span>
-                </div>
-            )}
-
-
 
             {/* Quick Actions Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? '10px' : '20px' }}>
@@ -270,7 +273,7 @@ const Home = ({ user, setActiveTab, isMobile, onlineUsersCount, setShowSurvivors
                     <button onClick={() => setActiveTab('tactics')} style={{ marginTop: '15px', padding: '10px', width: '100%', background: 'rgba(255,255,255,0.05)', border: 'none', color: 'rgba(255,255,255,0.7)', borderRadius: '8px', cursor: 'pointer' }}>전술 작전실 이동</button>
                 </div>
             </div>
-        </div >
+        </div>
     );
 };
 

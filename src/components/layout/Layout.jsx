@@ -75,6 +75,7 @@ const Layout = () => {
     }, [user?.id]);
 
     // 2. PRESENCE LISTENER (Lifted from Sidebar)
+    // 2. PRESENCE LISTENER (Real-time Online Count)
     useEffect(() => {
         if (!user?.campId) return;
 
@@ -84,7 +85,22 @@ const Layout = () => {
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            setOnlineUsersCount(snapshot.size);
+            const now = Date.now();
+            const activeThreshold = 2 * 60 * 1000; // 2 minutes
+
+            const activeCount = snapshot.docs.filter(doc => {
+                const data = doc.data();
+                if (!data.lastSeen) return false;
+                try {
+                    // Check if it's a Firestore Timestamp and convert
+                    const lastSeenTime = data.lastSeen?.toDate ? data.lastSeen.toDate().getTime() : new Date(data.lastSeen).getTime();
+                    return (now - lastSeenTime) < activeThreshold;
+                } catch (e) {
+                    return false;
+                }
+            }).length;
+
+            setOnlineUsersCount(activeCount);
         });
 
         return () => unsubscribe();

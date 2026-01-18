@@ -1,7 +1,6 @@
-```javascript
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Home, MessageSquare, Calendar, FolderOpen, Users, Settings, Flag, LogOut, Presentation, Tent, Sword, Music, Heart, Leaf, Zap, Shield, Target, Ghost, Flame, Skull, Wand2, Axe, Download } from 'lucide-react'; // Added Class Icons
+import { Home, MessageSquare, Calendar, FolderOpen, Users, Settings, Flag, LogOut, Presentation, Tent, Sword, Music, Heart, Leaf, Zap, Shield, Target, Ghost, Flame, Skull, Wand2, Axe, Download } from 'lucide-react';
 import logo from '../../assets/logo.svg';
 
 import { db } from '../../lib/firebase';
@@ -19,11 +18,9 @@ const CampfireIcon = ({ size = 20, color = "currentColor" }) => (
 
 const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, setShowSurvivors, showProfileView, setShowProfileView, showProfileEdit, setShowProfileEdit }) => {
     // 1. STATE DECLARATIONS
-    // const [onlineUsersCount, setOnlineUsersCount] = React.useState(0); // Removed internal state
     const [maxMembers, setMaxMembers] = React.useState(4);
 
     // Profile & Admin UI State
-    // Lifted to Layout
     const [showAdminReset, setShowAdminReset] = React.useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
 
@@ -38,7 +35,6 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
     const [editClass, setEditClass] = React.useState(user?.className || 'Warrior');
     const [editRole, setEditRole] = React.useState(user?.role || (user?.isAdmin ? 'Admin' : 'User'));
     const [editColor, setEditColor] = React.useState(user?.color || PROFILE_COLORS[Math.floor(Math.random() * PROFILE_COLORS.length)]);
-
 
     const isAdmin = user?.isAdmin === true;
 
@@ -62,12 +58,6 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
 
 
     // 2. EFFECTS
-    // Real-time Camp Member Count
-    // Real-time Camp Member Count Listener Removed (Lifted to Layout.jsx)
-    /* 
-    React.useEffect(() => { ... }, []); 
-    */
-
     // Sync profile form data when user prop updates
     React.useEffect(() => {
         if (user) {
@@ -119,7 +109,6 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
     };
 
     // 4. MENU ITEMS & ASSETS
-    // Using Korean class names to match DB data from ProfileSetup.jsx
     const bg3Classes = [
         "바바리안", "바드", "클레릭", "드루이드", "파이터", "몽크",
         "팔라딘", "레인저", "로그", "소서러", "워락", "위자드"
@@ -127,7 +116,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
 
     const menuItems = [
         { id: 'home', label: '홈', icon: Home },
-        { id: 'chat', label: '채팅', icon: MessageSquare }, // Note: Label might vary, matching context
+        { id: 'chat', label: '채팅', icon: MessageSquare },
         { id: 'calendar', label: '일정', icon: Calendar },
         { id: 'tactics', label: '전술판', icon: Presentation },
         { id: 'save', label: '세이브', icon: FolderOpen },
@@ -144,10 +133,9 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
     // 5. RENDER - MODALS (Shared)
     const renderModals = () => (
         <>
-            {/* 1. Logout Confirmation Modal - Portal to Body */}
+            {/* 1. Logout Confirmation Modal */}
             {showLogoutConfirm && createPortal(
                 <div className="modal-overlay" onClick={() => setShowLogoutConfirm(false)} style={{ alignItems: 'center' }}>
-                    {/* Added alignItems: center to force vertical centering */}
                     <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '350px', padding: '30px', textAlign: 'center', margin: 'auto' }}>
                         <h3 style={{ fontSize: '1.4rem', marginBottom: '10px', marginTop: '10px' }}>로그아웃</h3>
                         <p style={{ opacity: 0.8, marginBottom: '30px', lineHeight: '1.5' }}>
@@ -173,7 +161,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
                 document.body
             )}
 
-            {/* 2. Profile View Modal - Portal to Body */}
+            {/* 2. Profile View Modal */}
             {showProfileView && createPortal(
                 <div className="modal-overlay" onClick={() => setShowProfileView(false)} style={{ alignItems: 'center' }}>
                     <div className="modal-content" onClick={e => e.stopPropagation()} style={{ width: '90%', maxWidth: '400px', padding: '25px', textAlign: 'center', margin: 'auto', maxHeight: '90vh', overflowY: 'auto' }}>
@@ -214,31 +202,12 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
                             <Settings size={18} />
                             프로필 수정하기
                         </button>
-
-                        {/* Install App Button */}
-                        {deferredPrompt && (
-                            <button
-                                onClick={handleInstallClick}
-                                style={{
-                                    width: '100%', padding: '14px', borderRadius: '12px',
-                                    background: 'linear-gradient(135deg, #06b6d4, #3b82f6)',
-                                    border: 'none',
-                                    color: 'white', fontWeight: 'bold', cursor: 'pointer',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                                    marginTop: '10px',
-                                    boxShadow: '0 4px 15px rgba(6, 182, 212, 0.3)'
-                                }}
-                            >
-                                <Download size={18} />
-                                앱 설치하기 (다운로드)
-                            </button>
-                        )}
                     </div>
                 </div>,
                 document.body
             )}
 
-            {/* 3. Profile Edit Modal - Portal to Body */}
+            {/* 3. Profile Edit Modal */}
             {showProfileEdit && createPortal(
                 <div className="modal-overlay" onClick={() => setShowProfileEdit(false)} style={{ alignItems: 'center' }}>
                     <div className="modal-content" onClick={e => e.stopPropagation()} style={{ width: '90%', maxWidth: '400px', padding: '25px', margin: 'auto', maxHeight: '90vh', overflowY: 'auto' }}>
@@ -312,8 +281,6 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
 
     // 6. RENDER - MOBILE NAV
     if (isMobile) {
-        // Mobile Items Logic
-        // ... (Same Items array)
         const mobileItems = [
             { id: 'home', icon: Home, label: '홈' },
             { id: 'calendar', icon: Calendar, label: '일정' },
@@ -418,10 +385,10 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
                     <div
                         className="logo-shine"
                         style={{
-                            WebkitMaskImage: `url(${ logo })`,
-                            maskImage: `url(${ logo })`
+                            WebkitMaskImage: `url(${logo})`,
+                            maskImage: `url(${logo})`
                         }}
-                    />
+                    ></div>
                 </div>
 
                 <div
@@ -494,7 +461,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
                         width: '40px', height: '40px', borderRadius: '50%',
                         background: user.color || 'var(--accent-color)', // User Color
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: `0 2px 10px ${ (user.color || '#f59e0b') } 66`
+                        boxShadow: `0 2px 10px ${(user.color || '#f59e0b')}66`
                     }}>
                         <UserIcon size={20} color="white" />
                     </div>
