@@ -175,6 +175,18 @@ const ProfileSetup = ({ onComplete, initialData }) => {
 
             // Update local storage and state
             console.log("[Auth] Login successful:", userData);
+
+            // Self-Repair: Ensure user is in the camp's member list
+            if (userData.campId) {
+                try {
+                    await updateDoc(doc(db, "camps", userData.campId), {
+                        members: arrayUnion(nickname)
+                    });
+                } catch (repairErr) {
+                    console.error("[Auth] Failed to update camp member list:", repairErr);
+                }
+            }
+
             localStorage.setItem('bg3_user_profile', JSON.stringify(userData));
             onComplete(userData);
 
