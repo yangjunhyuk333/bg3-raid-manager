@@ -11,6 +11,26 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
     const [maxMembers, setMaxMembers] = React.useState(4);
     const isAdmin = user?.isAdmin === true;
     const [showProfileEdit, setShowProfileEdit] = React.useState(false);
+    const [showAdminReset, setShowAdminReset] = React.useState(false);
+    const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
+
+    // Secret Admin Toggle (Shift + Alt + R)
+    React.useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.shiftKey && e.altKey && (e.key === 'R' || e.key === 'r')) {
+                setShowAdminReset(prev => !prev);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
+
+    const handleLogout = () => {
+        // Clear all local data to ensure fresh login
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.reload();
+    };
 
     // Profile Edit State
     const [editName, setEditName] = React.useState(user?.nickname || '');
