@@ -1,14 +1,14 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Home, MessageSquare, Calendar, FolderOpen, Users, Settings, Flag, LogOut } from 'lucide-react';
+import { Home, MessageSquare, Calendar, FolderOpen, Users, Settings, Flag, LogOut, Presentation } from 'lucide-react';
 import logo from '../../assets/logo.svg';
 
 import { collection, onSnapshot, doc, query, where } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
-const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
+const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, setShowSurvivors }) => {
     // 1. STATE DECLARATIONS
-    const [onlineUsersCount, setOnlineUsersCount] = React.useState(0);
+    // const [onlineUsersCount, setOnlineUsersCount] = React.useState(0); // Removed internal state
     const [maxMembers, setMaxMembers] = React.useState(4);
 
     // Profile & Admin UI State
@@ -89,9 +89,9 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
 
     const menuItems = [
         { id: 'home', label: '홈', icon: Home },
-        { id: 'chat', label: '채팅', icon: MessageSquare },
+        { id: 'chat', label: '채팅', icon: MessageSquare }, // Note: Label might vary, matching context
         { id: 'calendar', label: '일정', icon: Calendar },
-        { id: 'tactics', label: '전술판', icon: Flag },
+        { id: 'tactics', label: '전술판', icon: Presentation },
         { id: 'save', label: '세이브', icon: FolderOpen },
         { id: 'profile', label: '프로필', icon: Users },
     ];
