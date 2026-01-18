@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import { Home, MessageSquare, Calendar, FolderOpen, Users, Settings, Flag, LogOut, Presentation, Tent } from 'lucide-react'; // Added Tent
 import logo from '../../assets/logo.svg';
 
-import { collection, onSnapshot, doc, query, where } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
 const CampfireIcon = ({ size = 20, color = "currentColor" }) => (
