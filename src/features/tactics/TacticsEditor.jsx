@@ -25,15 +25,24 @@ const TacticsEditor = ({ user, tacticId, initialData, onBack, isMobile, isStanda
     const isRemoteUpdate = useRef(false);
 
     // 2. Real-time Sync (Listen)
+    // State Refs for Subscription Check
+    const isDraggingElementRef = useRef(isDraggingElement);
+    const isDraggingCanvasRef = useRef(isDraggingCanvas);
+    const editingIdRef = useRef(editingId);
+
+    useEffect(() => { isDraggingElementRef.current = isDraggingElement; }, [isDraggingElement]);
+    useEffect(() => { isDraggingCanvasRef.current = isDraggingCanvas; }, [isDraggingCanvas]);
+    useEffect(() => { editingIdRef.current = editingId; }, [editingId]);
+
+    // 2. Real-time Sync (Listen)
     useEffect(() => {
         if (!tacticId) return;
 
-        // console.log("Subscribing to tactic:", tacticId);
         const unsub = onSnapshot(doc(db, "tactics", tacticId), (docSnapshot) => {
             if (docSnapshot.exists()) {
                 const data = docSnapshot.data();
-                // Prevent overwriting while user is actively dragging to avoid jitter
-                if (!isDraggingElement && !isDraggingCanvas && !editingId) {
+                // Check Refs to ensure we don't interrupt active user interaction
+                if (!isDraggingElementRef.current && !isDraggingCanvasRef.current && !editingIdRef.current) {
                     isRemoteUpdate.current = true;
                     setElements(data.elements || []);
                 }
@@ -41,7 +50,7 @@ const TacticsEditor = ({ user, tacticId, initialData, onBack, isMobile, isStanda
         });
 
         return () => unsub();
-    }, [tacticId, isDraggingElement, isDraggingCanvas, editingId]);
+    }, [tacticId]);
 
     // 2. Auto Save Logic (Write)
     const saveToFirestore = useCallback((newElements) => {

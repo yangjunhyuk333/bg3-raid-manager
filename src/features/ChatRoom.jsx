@@ -207,7 +207,7 @@ const ChatRoom = ({ user, isMobile, setActiveTab }) => {
                                 wordBreak: 'break-word'
                             }}>
                                 {msg.image && (
-                                    <img src={msg.image} alt="attached" style={{ maxWidth: '100%', borderRadius: '8px', marginBottom: msg.text ? '10px' : '0' }} />
+                                    <img src={msg.image} alt="attached" style={{ maxWidth: '100%', maxHeight: '300px', objectFit: 'contain', borderRadius: '8px', marginBottom: msg.text ? '10px' : '0' }} />
                                 )}
                                 {msg.text}
                             </div>

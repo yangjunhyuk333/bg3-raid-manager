@@ -144,6 +144,8 @@ const Layout = () => {
         }
     };
 
+    const isFullWidth = activeTab === 'chat' || activeTab === 'tactics';
+
     return (
         <div className="layout-container" style={{ display: 'flex', minHeight: '100vh', color: '#e2e8f0', fontFamily: 'Pretendard, sans-serif' }}>
             <Sidebar
@@ -156,8 +158,13 @@ const Layout = () => {
                 setShowSurvivors={setShowSurvivors}
             />
 
-            <main style={{ flex: 1, padding: isMobile ? '15px 15px 110px' : '40px', overflowY: 'auto', position: 'relative' }}>
-                <div style={{ maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
+            <main style={{
+                flex: 1,
+                padding: isMobile ? (activeTab === 'chat' ? '0 0 80px' : '15px 15px 110px') : (isFullWidth ? '0' : '40px'),
+                overflowY: 'auto',
+                position: 'relative'
+            }}>
+                <div style={{ maxWidth: isFullWidth ? '100%' : '1400px', margin: '0 auto', width: '100%', height: '100%' }}>
                     {renderContent()}
                 </div>
             </main>
