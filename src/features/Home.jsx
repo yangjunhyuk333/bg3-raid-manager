@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Calendar, MessageSquare, Activity, ArrowRight, CheckCircle2, LogOut, Sword, Music, Heart, Leaf, Shield, Target, Zap, Flame, Eye, Wand2, Skull, Ghost, Axe } from 'lucide-react';
+import { Users, Calendar, MessageSquare, Activity, ArrowRight, CheckCircle2, LogOut, Sword, Music, Heart, Leaf, Shield, Target, Zap, Flame, Eye, Wand2, Skull, Ghost, Axe, Map } from 'lucide-react';
 import { db } from '../lib/firebase';
-import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, limit, getDocs, where } from 'firebase/firestore';
 
 import logo from '../assets/logo.svg';
 
-const Home = ({ user, setActiveTab, isMobile, onlineUsersCount, setShowSurvivors }) => {
+const Home = ({ user, setActiveTab, isMobile, onlineUsersCount, setShowSurvivors, openTactic }) => {
     const [recentRaids, setRecentRaids] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -28,13 +28,23 @@ const Home = ({ user, setActiveTab, isMobile, onlineUsersCount, setShowSurvivors
         setDailyGoals(prev => prev.map(g => g.id === id ? { ...g, checked: !g.checked } : g));
     };
 
+    const [recentTactics, setRecentTactics] = useState([]);
+
     useEffect(() => {
         const fetchRecent = async () => {
             try {
-                const q = query(collection(db, "schedules"), orderBy("date"), limit(2));
-                const snapshot = await getDocs(q);
-                const data = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                setRecentRaids(data);
+                // Fetch Schedules
+                const qSchedule = query(collection(db, "schedules"), orderBy("date"), limit(3));
+                const snapshotSchedule = await getDocs(qSchedule);
+                setRecentRaids(snapshotSchedule.docs.map(d => ({ id: d.id, ...d.data() })));
+
+                // Fetch Tactics
+                if (user?.campId) {
+                    const qTactics = query(collection(db, "tactics"), where("campId", "==", user.campId), orderBy("createdAt", "desc"), limit(3));
+                    const snapshotTactics = await getDocs(qTactics);
+                    setRecentTactics(snapshotTactics.docs.map(d => ({ id: d.id, ...d.data() })));
+                }
+
             } catch (e) {
                 console.error(e);
             } finally {
@@ -42,7 +52,7 @@ const Home = ({ user, setActiveTab, isMobile, onlineUsersCount, setShowSurvivors
             }
         };
         fetchRecent();
-    }, []);
+    }, [user?.campId]);
 
     const QuickCard = ({ icon: Icon, title, desc, onClick, color }) => (
         <div
@@ -70,7 +80,7 @@ const Home = ({ user, setActiveTab, isMobile, onlineUsersCount, setShowSurvivors
     );
 
     return (
-        <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: isMobile ? '15px' : '30px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: isMobile ? '15px' : '30px' }}>
             {/* Mobile Logo (Above Card) */}
             {isMobile && (
                 <div className="logo-wrapper" style={{ position: 'relative', width: '180px', margin: '0 auto 10px' }}>
@@ -181,35 +191,77 @@ const Home = ({ user, setActiveTab, isMobile, onlineUsersCount, setShowSurvivors
             {/* Recent Schedule & Status */}
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '10px' : '20px' }}>
                 {/* Upcoming Raids */}
-                <div className="glass-panel" style={{ padding: '20px' }}>
-                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 20px' }}>
-                        <Calendar size={18} /> 다가오는 일정
+                <div className="glass-panel" style={{ padding: '20px', minHeight: '300px', display: 'flex', flexDirection: 'column' }}>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 20px', fontSize: '1.2rem' }}>
+                        <Calendar size={20} className="text-accent" /> 다가오는 일정
                     </h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
                         {loading ? <p style={{ opacity: 0.5 }}>로딩 중...</p> :
-                            recentRaids.length === 0 ? <p style={{ opacity: 0.5 }}>예정된 일정이 없습니다.</p> :
+                            recentRaids.length === 0 ?
+                                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.5 }}>
+                                    예정된 일정이 없습니다.
+                                </div> :
                                 recentRaids.map(raid => (
-                                    <div key={raid.id} style={{
-                                        padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px',
-                                        display: 'flex', alignItems: 'center', gap: '15px'
-                                    }}>
+                                    <div key={raid.id} onClick={() => setActiveTab('calendar')} style={{
+                                        padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px',
+                                        display: 'flex', alignItems: 'center', gap: '15px', cursor: 'pointer',
+                                        transition: 'background 0.2s', border: '1px solid rgba(255,255,255,0.05)'
+                                    }}
+                                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                                        onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                                    >
                                         <div style={{
                                             display: 'flex', flexDirection: 'column', alignItems: 'center',
-                                            padding: '5px 10px', background: 'rgba(0,0,0,0.3)', borderRadius: '6px'
+                                            padding: '8px 12px', background: 'rgba(0,0,0,0.3)', borderRadius: '10px', minWidth: '50px'
                                         }}>
                                             <span style={{ fontSize: '0.7rem', opacity: 0.7 }}>{raid.date?.split('-')[1]}월</span>
                                             <span style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{raid.date?.split('-')[2]}</span>
                                         </div>
                                         <div style={{ flex: 1 }}>
-                                            <div style={{ fontWeight: 'bold' }}>{raid.title}</div>
-                                            <div style={{ fontSize: '0.8rem', opacity: 0.6 }}>{raid.time} • {raid.type === 'raid' ? '⚔️ 레이드' : '📜 스토리'}</div>
+                                            <div style={{ fontWeight: 'bold', fontSize: '1rem' }}>{raid.title}</div>
+                                            <div style={{ fontSize: '0.8rem', opacity: 0.6, marginTop: '2px' }}>{raid.time} • {raid.type === 'raid' ? '⚔️ 레이드' : '📜 스토리'}</div>
                                         </div>
                                     </div>
                                 ))}
                     </div>
+                    <button onClick={() => setActiveTab('calendar')} style={{ marginTop: '15px', padding: '10px', width: '100%', background: 'rgba(255,255,255,0.05)', border: 'none', color: 'rgba(255,255,255,0.7)', borderRadius: '8px', cursor: 'pointer' }}>전체 일정 보기</button>
                 </div>
 
-
+                {/* Recent Tactics Widget */}
+                <div className="glass-panel" style={{ padding: '20px', minHeight: '300px', display: 'flex', flexDirection: 'column' }}>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '0 0 20px', fontSize: '1.2rem' }}>
+                        <Map size={20} className="text-secondary" style={{ color: '#60a5fa' }} /> 최근 전술
+                    </h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1 }}>
+                        {loading ? <p style={{ opacity: 0.5 }}>로딩 중...</p> :
+                            recentTactics.length === 0 ?
+                                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.5 }}>
+                                    수립된 작전이 없습니다.
+                                </div> :
+                                recentTactics.map(tactic => (
+                                    <div key={tactic.id} onClick={() => openTactic ? openTactic(tactic.id) : setActiveTab('tactics')} style={{
+                                        padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '12px',
+                                        display: 'flex', alignItems: 'center', gap: '15px', cursor: 'pointer',
+                                        transition: 'background 0.2s', border: '1px solid rgba(255,255,255,0.05)'
+                                    }}
+                                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                                        onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                                    >
+                                        <div style={{
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            padding: '10px', background: 'rgba(96, 165, 250, 0.2)', borderRadius: '10px'
+                                        }}>
+                                            <Map size={20} color="#60a5fa" />
+                                        </div>
+                                        <div style={{ flex: 1, overflow: 'hidden' }}>
+                                            <div style={{ fontWeight: 'bold', fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tactic.title}</div>
+                                            <div style={{ fontSize: '0.8rem', opacity: 0.6, marginTop: '2px' }}>작성자: {tactic.authorName}</div>
+                                        </div>
+                                    </div>
+                                ))}
+                    </div>
+                    <button onClick={() => setActiveTab('tactics')} style={{ marginTop: '15px', padding: '10px', width: '100%', background: 'rgba(255,255,255,0.05)', border: 'none', color: 'rgba(255,255,255,0.7)', borderRadius: '8px', cursor: 'pointer' }}>전술 작전실 이동</button>
+                </div>
             </div>
         </div >
     );

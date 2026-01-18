@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Search, Map, Calendar, MoreVertical, Trash2, RefreshCw } from 'lucide-react';
 import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import TacticsEditor from './TacticsEditor';
 
-const TacticsList = ({ user, onSelectTactic }) => {
+const TacticsList = ({ user, initialTacticId, clearInitialTactic }) => {
     const [tactics, setTactics] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
+    const [selectedTactic, setSelectedTactic] = useState(null);
 
     // Create Form
     const [newTitle, setNewTitle] = useState('');
@@ -37,6 +39,17 @@ const TacticsList = ({ user, onSelectTactic }) => {
         return () => unsubscribe();
     }, [user?.campId, refreshKey]);
 
+    // Handle deep link from Home
+    useEffect(() => {
+        if (initialTacticId && tactics.length > 0) {
+            const target = tactics.find(t => t.id === initialTacticId);
+            if (target) {
+                setSelectedTactic(target);
+                if (clearInitialTactic) clearInitialTactic();
+            }
+        }
+    }, [initialTacticId, tactics, clearInitialTactic]);
+
     const handleCreate = async (e) => {
         e.preventDefault();
         if (!newTitle.trim()) return;
@@ -48,21 +61,27 @@ const TacticsList = ({ user, onSelectTactic }) => {
 
         try {
             console.log("Creating tactic...", { campId: user.campId, author: user.nickname, title: newTitle });
-            await addDoc(collection(db, "tactics"), {
+            const docData = {
                 campId: user.campId,
-                authorId: user.id || user.nickname, // Fallback
+                authorId: user.id || user.nickname,
                 authorName: user.nickname,
                 title: newTitle,
                 description: newDesc,
                 createdAt: serverTimestamp(),
-                elements: [] // Empty canvas initially
-            });
+                elements: []
+            };
+            const docRef = await addDoc(collection(db, "tactics"), docData);
+
             console.log("Tactic created successfully");
-            setLoading(true); // Show loading briefly
-            setRefreshKey(prev => prev + 1); // Force Refresh as requested
+            setLoading(true);
+            setRefreshKey(prev => prev + 1);
             setShowCreateModal(false);
             setNewTitle('');
             setNewDesc('');
+
+            // Open immediately
+            setSelectedTactic({ id: docRef.id, ...docData });
+
         } catch (error) {
             console.error("Error creating tactic:", error);
             alert("전술판 생성 실패: " + error.code + " - " + error.message);
@@ -141,7 +160,7 @@ const TacticsList = ({ user, onSelectTactic }) => {
                     {tactics.map(tactic => (
                         <div
                             key={tactic.id}
-                            onClick={() => onSelectTactic(tactic)}
+                            onClick={() => setSelectedTactic(tactic)}
                             className="glass-panel"
                             style={{
                                 padding: '0', cursor: 'pointer', overflow: 'hidden',
@@ -180,7 +199,7 @@ const TacticsList = ({ user, onSelectTactic }) => {
                                 </p>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', fontSize: '0.75rem', opacity: 0.4 }}>
                                     <span>{tactic.authorName}</span>
-                                    <span>{tactic.createdAt?.toDate().toLocaleDateString() || '방금 전'}</span>
+                                    <span>{tactic.createdAt?.toDate?.() ? tactic.createdAt.toDate().toLocaleDateString() : '방금 전'}</span>
                                 </div>
                             </div>
                         </div>
@@ -220,6 +239,23 @@ const TacticsList = ({ user, onSelectTactic }) => {
                             </div>
                         </form>
                     </div>
+                </div>
+            )}
+
+            {/* Editor Modal (Full Screen Overlay) */}
+            {selectedTactic && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    zIndex: 2000, background: '#1a1a1a',
+                    animation: 'fadeIn 0.2s ease-out'
+                }}>
+                    <TacticsEditor
+                        user={user}
+                        tacticId={selectedTactic.id}
+                        initialData={selectedTactic}
+                        onBack={() => setSelectedTactic(null)}
+                        isMobile={window.innerWidth < 768}
+                    />
                 </div>
             )}
         </div>

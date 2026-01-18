@@ -121,17 +121,24 @@ const Layout = () => {
         return <ProfileSetup onComplete={() => window.location.reload()} isMobile={isMobile} />;
     }
 
+    const [targetTacticId, setTargetTacticId] = useState(null);
+
+    const openTactic = (id) => {
+        setTargetTacticId(id);
+        setActiveTab('tactics');
+    };
+
     const renderContent = () => {
         // Pass common props including presence state
         const commonProps = { user, isMobile, onlineUsersCount, setShowSurvivors };
 
         switch (activeTab) {
-            case 'home': return <Home {...commonProps} setActiveTab={setActiveTab} />;
+            case 'home': return <Home {...commonProps} setActiveTab={setActiveTab} openTactic={openTactic} />;
             case 'chat': return <ChatRoom {...commonProps} setActiveTab={setActiveTab} />;
             case 'calendar': return <RaidScheduler {...commonProps} />;
             case 'save': return <SaveAnalyzer {...commonProps} />;
             case 'admin': return <CampManagement {...commonProps} />;
-            case 'tactics': return <TacticsBoard {...commonProps} />;
+            case 'tactics': return <TacticsBoard {...commonProps} initialTacticId={targetTacticId} clearInitialTactic={() => setTargetTacticId(null)} />;
             case 'profile': return <ProfileSetup user={user} onComplete={() => window.location.reload()} isMobile={isMobile} />;
             default: return <Home {...commonProps} setActiveTab={setActiveTab} />;
         }
@@ -150,7 +157,9 @@ const Layout = () => {
             />
 
             <main style={{ flex: 1, padding: isMobile ? '15px 15px 110px' : '40px', overflowY: 'auto', position: 'relative' }}>
-                {renderContent()}
+                <div style={{ maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
+                    {renderContent()}
+                </div>
             </main>
 
             {/* Global Survivors Modal */}

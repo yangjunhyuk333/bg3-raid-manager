@@ -139,10 +139,10 @@ const ProfileSetup = ({ onComplete, initialData, user, isMobile }) => {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        if (initialData) {
+        if (data) {
             setMode('profile_view');
         }
-    }, [initialData]);
+    }, [data]);
 
     const resetForm = () => {
         setNickname('');
@@ -396,9 +396,9 @@ const ProfileSetup = ({ onComplete, initialData, user, isMobile }) => {
 
     // If Profile View, we just render it (no modaling needed for this simple view usually, but could be modal too)
     // For now keeping Profile View as a "page" because it replaces the main content usually.
-    if (mode === 'profile_view' && initialData) {
+    if (mode === 'profile_view' && data) {
         return (
-            <div className="glass-panel" style={{ maxWidth: '450px', margin: '40px auto', padding: '40px', textAlign: 'center' }}>
+            <div className="glass-panel" style={{ maxWidth: '450px', width: '100%', margin: '40px auto', padding: '40px', textAlign: 'center' }}>
                 <div style={{ textAlign: 'center', marginBottom: '30px' }}>
                     <div style={{
                         width: '100px', height: '100px', borderRadius: '50%',
