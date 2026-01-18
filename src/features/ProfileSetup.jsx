@@ -375,68 +375,75 @@ const ProfileSetup = ({ onComplete, initialData }) => {
     return (
         <>
             {/* 1. Background Layer (Always Visible) */}
-            <div className="glass-panel" style={{
-                maxWidth: '1000px', width: '95%',
-                /* Removed margin: '40px auto' to let parent flex center it */
-                padding: '60px 60px', textAlign: 'center',
-                minHeight: '550px', display: 'flex', alignItems: 'center', justifyContent: 'center'
+            <div style={{
+                position: 'fixed', inset: 0,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: '20px' // Prevent edge touching on small screens
             }}>
-                <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '60px', width: '100%' }}>
-                    {/* Logo Section */}
-                    <div style={{ flex: '1 1 300px', display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
-                        <div className="logo-wrapper" style={{ position: 'relative', maxWidth: '420px', width: '100%' }}>
-                            {/* The Base Image */}
-                            <img
-                                src={logo}
-                                alt="Logo"
-                                onClick={() => window.location.reload()}
-                                title="새로고침"
-                                style={{ width: '100%', cursor: 'pointer', transition: 'transform 0.3s ease', display: 'block' }}
-                                onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.03)'}
-                                onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                            />
-                            {/* The Shine Overlay - Masked to the image */}
-                            <div
-                                className="logo-shine"
-                                style={{
-                                    WebkitMaskImage: `url(${logo})`,
-                                    maskImage: `url(${logo})`
-                                }}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Buttons Section */}
-                    <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '350px', width: '100%' }}>
-                        <button onClick={() => { resetForm(); setMode('login'); }} style={{ ...btnStyle, background: 'rgba(255,255,255,0.08)', color: 'white', border: '1px solid rgba(255,255,255,0.1)' }}>
-                            <LogIn size={20} />
-                            기존 모험가 로그인
-                        </button>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', opacity: 0.3, fontSize: '0.8rem' }}>
-                            <div style={{ flex: 1, height: '1px', background: 'white' }}></div>
-                            <span>OR</span>
-                            <div style={{ flex: 1, height: '1px', background: 'white' }}></div>
+                <div className="glass-panel" style={{
+                    maxWidth: '1000px', width: '100%',
+                    padding: '60px 60px', textAlign: 'center',
+                    minHeight: '550px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    margin: 0 // Explicitly remove margin to rely on flex centering
+                }}>
+                    <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '60px', width: '100%' }}>
+                        {/* Logo Section */}
+                        <div style={{ flex: '1 1 300px', display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
+                            <div className="logo-wrapper" style={{ position: 'relative', maxWidth: '420px', width: '100%' }}>
+                                {/* The Base Image */}
+                                <img
+                                    src={logo}
+                                    alt="Logo"
+                                    onClick={() => window.location.reload()}
+                                    title="새로고침"
+                                    style={{ width: '100%', cursor: 'pointer', transition: 'transform 0.3s ease', display: 'block' }}
+                                    onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.03)'}
+                                    onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                                />
+                                {/* The Shine Overlay - Masked to the image */}
+                                <div
+                                    className="logo-shine"
+                                    style={{
+                                        WebkitMaskImage: `url(${logo})`,
+                                        maskImage: `url(${logo})`
+                                    }}
+                                />
+                            </div>
                         </div>
 
-                        <button onClick={() => { resetForm(); setMode('join_camp'); }} style={{ ...btnStyle, background: 'linear-gradient(45deg, #7c3aed, #db2777)', color: 'white', boxShadow: '0 4px 15px rgba(124, 58, 237, 0.3)' }}>
-                            <Users size={20} />
-                            야영지 합류하기 (일반)
-                        </button>
-                        <button onClick={() => { resetForm(); setMode('create_camp'); }} style={{ ...btnStyle, background: 'linear-gradient(45deg, #ef4444, #f97316)', color: 'white', boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)' }}>
-                            <Crown size={20} />
-                            새 야영지 건설 (관리자)
-                        </button>
+                        {/* Buttons Section */}
+                        <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '350px', width: '100%' }}>
+                            <button onClick={() => { resetForm(); setMode('login'); }} style={{ ...btnStyle, background: 'rgba(255,255,255,0.08)', color: 'white', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                <LogIn size={20} />
+                                기존 모험가 로그인
+                            </button>
 
-                        <p style={{
-                            marginTop: '10px', opacity: 0.6, fontSize: '0.85rem',
-                            lineHeight: '1.5', fontWeight: '400',
-                            textAlign: 'center'
-                        }}>
-                            동료들과 함께 나만의 이야기를 만들어보세요.<br />
-                            <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>발더스 게이트 3 원정대</span>를 위한<br />
-                            필수 컴패니언 앱
-                        </p>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', opacity: 0.3, fontSize: '0.8rem' }}>
+                                <div style={{ flex: 1, height: '1px', background: 'white' }}></div>
+                                <span>OR</span>
+                                <div style={{ flex: 1, height: '1px', background: 'white' }}></div>
+                            </div>
+
+                            <button onClick={() => { resetForm(); setMode('join_camp'); }} style={{ ...btnStyle, background: 'linear-gradient(45deg, #7c3aed, #db2777)', color: 'white', boxShadow: '0 4px 15px rgba(124, 58, 237, 0.3)' }}>
+                                <Users size={20} />
+                                야영지 합류하기 (일반)
+                            </button>
+                            <button onClick={() => { resetForm(); setMode('create_camp'); }} style={{ ...btnStyle, background: 'linear-gradient(45deg, #ef4444, #f97316)', color: 'white', boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)' }}>
+                                <Crown size={20} />
+                                새 야영지 건설 (관리자)
+                            </button>
+
+                            <p style={{
+                                marginTop: '10px', opacity: 0.6, fontSize: '0.85rem',
+                                lineHeight: '1.5', fontWeight: '400',
+                                textAlign: 'center'
+                            }}>
+                                동료들과 함께 나만의 이야기를 만들어보세요.<br />
+                                <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>발더스 게이트 3 원정대</span>를 위한<br />
+                                필수 컴패니언 앱
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
