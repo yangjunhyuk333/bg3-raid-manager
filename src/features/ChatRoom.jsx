@@ -210,13 +210,38 @@ const ChatRoom = ({ user, isMobile }) => {
                     );
                 })}
 
-                {/* Typing Indicator */}
+                {/* Visual Typing Indicator (Messenger Style) */}
                 {typingUsers.length > 0 && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: 0.7, padding: '0 10px', marginTop: '5px' }}>
-                        <Loader2 size={14} className="spin" />
-                        <span style={{ fontSize: '0.8rem', color: '#a78bfa' }}>
-                            {typingUsers.map(u => u.nickname).join(', ')}님이 입력 중...
-                        </span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '10px', paddingLeft: '4px' }}>
+                        {typingUsers.slice(0, 3).map(u => (
+                            <div key={u.id} style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', opacity: 0.9 }}>
+                                {/* Avatar Placeholder */}
+                                <div style={{
+                                    width: '28px', height: '28px', borderRadius: '50%',
+                                    background: 'linear-gradient(135deg, #a78bfa, #8b5cf6)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: '0.7rem', fontWeight: 'bold', color: 'white',
+                                    boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+                                }}>
+                                    {u.nickname ? u.nickname.charAt(0) : <User size={14} />}
+                                </div>
+                                {/* Typing Bubble */}
+                                <div style={{
+                                    background: 'rgba(255,255,255,0.15)',
+                                    borderRadius: '16px 16px 16px 2px',
+                                    padding: '8px 12px',
+                                    display: 'flex', alignItems: 'center', gap: '4px',
+                                    height: '32px',
+                                    border: '1px solid rgba(255,255,255,0.1)'
+                                }}>
+                                    <div className="typing-dot" />
+                                    <div className="typing-dot" />
+                                    <div className="typing-dot" />
+                                </div>
+                                {/* Optional Name Label */}
+                                <span style={{ fontSize: '0.7rem', opacity: 0.5, marginBottom: '4px' }}>{u.nickname} 입력 중...</span>
+                            </div>
+                        ))}
                     </div>
                 )}
 
