@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ArrowLeft, Save, MousePointer, Type, Square, Image as ImageIcon, Move, Plus, Sparkles, User, Skull, Youtube, ExternalLink, PlayCircle, Users, Edit } from 'lucide-react';
+import { ArrowLeft, Save, MousePointer, Type, Square, Image as ImageIcon, Move, Plus, Sparkles, User, Skull, Youtube, ExternalLink, PlayCircle, Users, Edit, X } from 'lucide-react';
 import { doc, updateDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
-const TacticsEditor = ({ user, tacticId, initialData, onBack, isMobile, isStandalone }) => {
+const TacticsEditor = ({ user, tacticId, initialData, onBack, isMobile, isStandalone, isModal }) => {
     // 1. Canvas State
     const [elements, setElements] = useState(initialData?.elements || []);
     const [viewport, setViewport] = useState(initialData?.viewState || { x: 0, y: 0, scale: 1 });
@@ -264,7 +264,7 @@ const TacticsEditor = ({ user, tacticId, initialData, onBack, isMobile, isStanda
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px', pointerEvents: 'auto' }}>
                     {!isStandalone && (
                         <button onClick={onBack} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', cursor: 'pointer', padding: '10px', borderRadius: '50%', backdropFilter: 'blur(5px)' }}>
-                            <ArrowLeft size={20} />
+                            {isModal ? <X size={20} /> : <ArrowLeft size={20} />}
                         </button>
                     )}
                     <div>
