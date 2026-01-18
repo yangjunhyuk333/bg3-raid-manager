@@ -85,7 +85,7 @@ const Modal = ({ children, title, sub, onClose, error }) => (
     </div>
 );
 
-const ProfileSetup = ({ onComplete, initialData }) => {
+const ProfileSetup = ({ onComplete, initialData, isMobile }) => {
     // mode: 'landing' (default) | 'login' | 'create_camp' | 'join_camp' | 'profile_view'
     // 'landing' is now the background view. Other modes trigger modals.
     const [mode, setMode] = useState(initialData ? 'profile_view' : 'landing');
@@ -382,12 +382,20 @@ const ProfileSetup = ({ onComplete, initialData }) => {
             }}>
                 <div className="glass-panel" style={{
                     maxWidth: '1000px', width: '100%',
-                    padding: '60px 60px', textAlign: 'center',
-                    minHeight: '550px',
+                    padding: isMobile ? '30px 20px' : '60px 60px', textAlign: 'center',
+                    minHeight: isMobile ? 'auto' : '550px',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    margin: 0 // Explicitly remove margin to rely on flex centering
+                    margin: 0
                 }}>
-                    <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '60px', width: '100%' }}>
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        flexWrap: 'wrap',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: isMobile ? '20px' : '60px', // Reduced gap on mobile
+                        width: '100%'
+                    }}>
                         {/* Logo Section */}
                         <div style={{ flex: '1 1 300px', display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
                             <div className="logo-wrapper" style={{ position: 'relative', maxWidth: '420px', width: '100%' }}>

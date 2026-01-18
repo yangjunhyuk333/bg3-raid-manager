@@ -98,7 +98,7 @@ const ChatRoom = ({ user, isMobile }) => {
             top: isMobile ? 'calc(60px + env(safe-area-inset-top))' : 0,
             left: isMobile ? 0 : 0,
             right: isMobile ? 0 : 0,
-            bottom: isMobile ? 'calc(65px + env(safe-area-inset-bottom))' : 0,
+            bottom: isMobile ? 'calc(75px + env(safe-area-inset-bottom))' : 0,  // Increased base to 75px
             background: isMobile ? 'rgba(20, 20, 30, 0.95)' : 'transparent',
             zIndex: 50
         }}>

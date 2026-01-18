@@ -58,7 +58,7 @@ const Layout = () => {
     };
 
     if (!user) {
-        return <ProfileSetup onComplete={handleProfileComplete} />;
+        return <ProfileSetup onComplete={handleProfileComplete} isMobile={isMobile} />;
     }
 
     return (
