@@ -1,142 +1,151 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Calendar from 'react-calendar';
-import { Calendar as CalendarIcon, Plus, Trash2, Users, Clock, CheckCircle2, TrendingUp, X } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, CheckCircle2, TrendingUp, Users, AlertCircle, Crown } from 'lucide-react';
 import { db } from '../lib/firebase';
-import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, updateDoc, where } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, onSnapshot, query, setDoc, where, getDocs, writeBatch } from 'firebase/firestore';
 
 const RaidScheduler = ({ user, isMobile }) => {
-    const [schedules, setSchedules] = useState([]);
     const [date, setDate] = useState(new Date());
+    const [availabilities, setAvailabilities] = useState([]);
+    const [confirmedRaids, setConfirmedRaids] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [showModal, setShowModal] = useState(false);
 
-    // Form State
-    const [newItem, setNewItem] = useState({
-        title: '',
-        date: '',
-        type: 'vote', // 'vote' | 'fixed'
-        timeSlots: [], // Array of { time: '20:00', votes: [] }
-        fixedTime: '',
-    });
-    const [tempTimeSlot, setTempTimeSlot] = useState('');
+    const selectedDateStr = date.toLocaleDateString('en-CA'); // YYYY-MM-DD
 
+    // 1. Fetch Data
     useEffect(() => {
         if (!user?.campId) {
             setLoading(false);
             return;
         }
 
-        const q = query(
-            collection(db, "schedules"),
-            where("campId", "==", user.campId),
-            orderBy("date")
+        // Listen to Availabilities
+        const qAvail = query(
+            collection(db, "availabilities"),
+            where("campId", "==", user.campId)
         );
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const data = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            setSchedules(data);
+        // Listen to Confirmed Raids
+        const qRaids = query(
+            collection(db, "schedules"),
+            where("campId", "==", user.campId),
+            where("type", "==", "fixed")
+        );
+
+        const unsubAvail = onSnapshot(qAvail, (snapshot) => {
+            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setAvailabilities(data);
+        });
+
+        const unsubRaids = onSnapshot(qRaids, (snapshot) => {
+            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setConfirmedRaids(data);
             setLoading(false);
         });
-        return () => unsubscribe();
+
+        return () => {
+            unsubAvail();
+            unsubRaids();
+        };
     }, [user?.campId]);
 
-    const handleAddTimeSlot = () => {
-        if (tempTimeSlot && !newItem.timeSlots.some(s => s.time === tempTimeSlot)) {
-            setNewItem(prev => ({
-                ...prev,
-                timeSlots: [...prev.timeSlots, { time: tempTimeSlot, votes: [] }].sort((a, b) => a.time.localeCompare(b.time))
-            }));
-            setTempTimeSlot('');
-        }
+    // 2. Derive State
+    // My availability for selected date
+    const myAvailabilityDoc = availabilities.find(a => a.userId === user.id && a.date === selectedDateStr);
+    const myTimeSlots = myAvailabilityDoc?.possibleTimes || [];
+
+    // Team availability map for selected date: { "20:00": [user1, user2], ... }
+    const teamAvailabilityMap = useMemo(() => {
+        const map = {};
+        const dailyAvails = availabilities.filter(a => a.date === selectedDateStr);
+
+        dailyAvails.forEach(a => {
+            a.possibleTimes?.forEach(time => {
+                if (!map[time]) map[time] = [];
+                map[time].push(a.nickname);
+            });
+        });
+        return map;
+    }, [availabilities, selectedDateStr]);
+
+    // Confirmed raid for this date?
+    const confirmedRaid = confirmedRaids.find(r => r.date === selectedDateStr);
+
+    // 3. Actions
+    const toggleMyTime = async (time) => {
+        if (!user.campId) return;
+
+        const newSlots = myTimeSlots.includes(time)
+            ? myTimeSlots.filter(t => t !== time)
+            : [...myTimeSlots, time].sort();
+
+        // Doc ID based on user + date to prevent duplicates easily
+        const docId = `${user.campId}_${user.id}_${selectedDateStr}`;
+        const docRef = doc(db, "availabilities", docId);
+
+        await setDoc(docRef, {
+            campId: user.campId,
+            userId: user.id,
+            nickname: user.nickname,
+            date: selectedDateStr,
+            possibleTimes: newSlots
+        });
     };
 
-    const handleRemoveTimeSlot = (time) => {
-        setNewItem(prev => ({
-            ...prev,
-            timeSlots: prev.timeSlots.filter(t => t.time !== time)
-        }));
-    };
+    const confirmRaid = async (time) => {
+        if (!window.confirm(`${date.toLocaleDateString()} ${time}에 레이드를 확정하시겠습니까?`)) return;
 
-    const handleAdd = async (e) => {
-        e.preventDefault();
         try {
+            // 1. Create Confirmed Schedule
             await addDoc(collection(db, "schedules"), {
-                ...newItem,
                 campId: user.campId,
+                title: "정기 레이드", // Default title, or ask user?
+                date: selectedDateStr,
+                fixedTime: time,
+                type: 'fixed',
                 creator: user.nickname,
                 createdAt: new Date().toISOString()
             });
-            setShowModal(false);
-            setNewItem({ title: '', date: '', type: 'vote', timeSlots: [], fixedTime: '' });
-        } catch (error) {
-            console.error("Error adding schedule: ", error);
-            alert("일정 추가 실패: " + error.message);
+
+            // 2. Optional: Clean up availabilities? Or keep them for record? Keeping them is safer.
+            alert("레이드가 확정되었습니다! 파티원들에게 알립니다.");
+        } catch (e) {
+            console.error(e);
+            alert("오류 발생: " + e.message);
         }
     };
 
-    const handleDelete = async (id) => {
-        if (window.confirm('정말 삭제하시겠습니까?')) {
-            await deleteDoc(doc(db, "schedules", id));
-        }
+    const cancelRaid = async (raidId) => {
+        if (!window.confirm("정말 이 레이드 일정을 취소하시겠습니까?")) return;
+        await deleteDoc(doc(db, "schedules", raidId));
     };
 
-    const handleVote = async (scheduleId, slotIndex, currentVotes) => {
-        const schedule = schedules.find(s => s.id === scheduleId);
-        if (!schedule) return;
+    // Helper: Time slots to interact with (e.g., 18:00 - 02:00) + Weekends maybe entire day?
+    // For simplicity, let's offer standard raid hours + expand option
+    const PRIMARY_HOURS = ['18:00', '19:00', '20:00', '21:00', '22:00', '23:00', '00:00', '01:00', '02:00'];
 
-        const userNickname = user.nickname;
-        const newSlots = [...schedule.timeSlots];
-        const targetSlot = { ...newSlots[slotIndex] };
-
-        if (targetSlot.votes.includes(userNickname)) {
-            targetSlot.votes = targetSlot.votes.filter(v => v !== userNickname);
-        } else {
-            targetSlot.votes = [...targetSlot.votes, userNickname];
-        }
-
-        newSlots[slotIndex] = targetSlot;
-
-        await updateDoc(doc(db, "schedules", scheduleId), {
-            timeSlots: newSlots
-        });
-    };
-
-    // Filter schedules for the selected date on calendar
-    const selectedDateStr = date.toLocaleDateString('en-CA');
-    const filteredSchedules = schedules.filter(s => s.date === selectedDateStr);
-
+    // Calendar Tile Content
     const tileContent = ({ date: tileDate, view }) => {
         if (view === 'month') {
-            const dateStr = tileDate.toLocaleDateString('en-CA');
-            const hasEvent = schedules.some(s => s.date === dateStr);
-            if (hasEvent) {
-                return <div style={{ height: '6px', width: '6px', background: '#f87171', borderRadius: '50%', margin: '2px auto' }}></div>
-            }
+            const dStr = tileDate.toLocaleDateString('en-CA');
+            // Check for confirmed raid
+            const hasRaid = confirmedRaids.some(r => r.date === dStr);
+            if (hasRaid) return <div style={{ height: '6px', width: '6px', background: '#f87171', borderRadius: '50%', margin: '2px auto' }}></div>;
+
+            // Check for any availability logged
+            const hasAvail = availabilities.some(a => a.date === dStr);
+            if (hasAvail) return <div style={{ height: '4px', width: '4px', background: 'rgba(255,255,255,0.3)', borderRadius: '50%', margin: '2px auto' }}></div>;
         }
     };
 
     return (
         <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            {/* Calendar Section */}
+
+            {/* 1. Calendar View */}
             <div className="glass-panel" style={{ padding: isMobile ? '15px' : '20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'white', margin: 0, fontSize: isMobile ? '1.2rem' : '1.5rem' }}>
-                        <CalendarIcon className="text-accent" /> 모험 일정 (Calendar)
-                    </h2>
-                    <button
-                        onClick={() => {
-                            setNewItem(prev => ({ ...prev, date: selectedDateStr }));
-                            setShowModal(true);
-                        }}
-                        className="glass-button"
-                        style={{ background: 'var(--accent-color)', border: 'none', padding: isMobile ? '8px 12px' : '10px 20px', borderRadius: '8px', color: 'white', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px', fontSize: isMobile ? '0.8rem' : '1rem' }}
-                    >
-                        <Plus size={isMobile ? 14 : 18} /> 일정 추가
-                    </button>
-                </div>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'white', margin: '0 0 20px', fontSize: isMobile ? '1.2rem' : '1.5rem' }}>
+                    <CalendarIcon className="text-accent" /> 레이드 일정 (Raid Scheduler)
+                </h2>
 
                 <style>{`
                     .react-calendar { background: transparent !important; border: none !important; width: 100% !important; color: white !important; font-family: inherit; }
@@ -147,162 +156,124 @@ const RaidScheduler = ({ user, isMobile }) => {
                     .react-calendar__tile:enabled:hover, .react-calendar__tile:enabled:focus { background-color: rgba(255,255,255,0.1); border-radius: 12px; }
                     .react-calendar__tile--now { background: rgba(255,255,255,0.1) !important; border-radius: 12px; }
                     .react-calendar__tile--active { background: var(--accent-color) !important; color: white !important; border-radius: 12px; }
-                    .react-calendar__month-view__days__day--neighboringMonth { opacity: 0.3; }
                 `}</style>
 
-                <Calendar
-                    onChange={setDate}
-                    value={date}
-                    tileContent={tileContent}
-                    formatDay={(locale, date) => date.getDate()}
-                />
+                <Calendar onChange={setDate} value={date} tileContent={tileContent} formatDay={(l, d) => d.getDate()} />
             </div>
 
-            {/* List Section */}
-            <div className="glass-panel" style={{ padding: isMobile ? '15px' : '20px', minHeight: '200px' }}>
-                <h3 style={{ margin: '0 0 15px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>
-                    {date.toLocaleDateString()} 일정 목록
-                </h3>
+            {/* 2. Confirmed Raid Status (If exists for selected date) */}
+            {confirmedRaid ? (
+                <div className="glass-panel" style={{
+                    padding: '25px',
+                    background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.05))',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    textAlign: 'center'
+                }}>
+                    <h3 style={{ fontSize: '1.4rem', color: '#fca5a5', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                        <CheckCircle2 /> 레이드 확정됨
+                    </h3>
+                    <p style={{ fontSize: '2rem', fontWeight: 'bold', margin: '10px 0' }}>{confirmedRaid.fixedTime}</p>
+                    <p style={{ opacity: 0.8 }}>모든 대원은 해당 시간에 야영지로 집결하십시오.</p>
 
-                {loading ? <p style={{ textAlign: 'center', opacity: 0.5, padding: '40px' }}>일정을 불러오는 중입니다...</p> :
-                    filteredSchedules.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '40px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed rgba(255,255,255,0.1)' }}>
-                            <p style={{ opacity: 0.5, marginBottom: '15px' }}>이 날짜에는 예정된 모험이 없습니다.</p>
-                            <button
-                                onClick={() => {
-                                    setNewItem(prev => ({ ...prev, date: selectedDateStr }));
-                                    setShowModal(true);
-                                }}
-                                style={{
-                                    background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)',
-                                    padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.9rem'
-                                }}
-                            >
-                                + 새 일정 만들기
-                            </button>
+                    {(user.isAdmin || user.role === 'Admin') && (
+                        <button
+                            onClick={() => cancelRaid(confirmedRaid.id)}
+                            style={{
+                                marginTop: '20px', padding: '10px 20px', borderRadius: '8px',
+                                background: 'rgba(0,0,0,0.3)', color: '#fca5a5', border: '1px solid rgba(239,68,68,0.5)',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            일정 취소하기
+                        </button>
+                    )}
+                </div>
+            ) : (
+                <>
+                    {/* 3. My Availability Input */}
+                    <div className="glass-panel" style={{ padding: isMobile ? '15px' : '20px' }}>
+                        <h3 style={{ margin: '0 0 15px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.1rem' }}>
+                            <Clock size={18} color="var(--accent-color)" />
+                            나의 가능 시간 ({date.toLocaleDateString()})
+                        </h3>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                            {PRIMARY_HOURS.map(time => {
+                                const isSelected = myTimeSlots.includes(time);
+                                return (
+                                    <button
+                                        key={time}
+                                        onClick={() => toggleMyTime(time)}
+                                        style={{
+                                            padding: '10px 16px', borderRadius: '12px', border: 'none', cursor: 'pointer',
+                                            background: isSelected ? 'var(--accent-color)' : 'rgba(255,255,255,0.05)',
+                                            color: isSelected ? 'white' : 'rgba(255,255,255,0.6)',
+                                            fontWeight: isSelected ? 'bold' : 'normal',
+                                            transition: 'all 0.2s', flexGrow: isMobile ? 1 : 0
+                                        }}
+                                    >
+                                        {time}
+                                    </button>
+                                )
+                            })}
                         </div>
-                    ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: '15px' }}>
-                            {filteredSchedules.map((item) => (
-                                <div key={item.id} style={{
-                                    background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '12px',
-                                    border: '1px solid rgba(255,255,255,0.1)'
-                                }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                                        <div style={{ display: 'flex', gap: '5px' }}>
-                                            <span style={{
-                                                fontSize: '0.7rem', padding: '2px 8px', borderRadius: '10px',
-                                                background: item.type === 'vote' ? 'rgba(167, 139, 250, 0.2)' : 'rgba(248, 113, 113, 0.2)',
-                                                color: item.type === 'vote' ? '#a78bfa' : '#fca5a5'
+                    </div>
+
+                    {/* 4. Team Status & Confirmation */}
+                    <div className="glass-panel" style={{ padding: isMobile ? '15px' : '20px' }}>
+                        <h3 style={{ margin: '0 0 15px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.1rem' }}>
+                            <Users size={18} color="#a78bfa" />
+                            파티 현황 (Team Status)
+                        </h3>
+
+                        {Object.keys(teamAvailabilityMap).length === 0 ? (
+                            <p style={{ opacity: 0.5, textAlign: 'center', padding: '20px' }}>아직 등록된 가능 시간이 없습니다.</p>
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                {Object.entries(teamAvailabilityMap)
+                                    .sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0])) // Sort by Count DESC, then Time ASC
+                                    .map(([time, members]) => {
+                                        const count = members.length;
+                                        // Highlight if count is high (e.g. >= 3 or 4)
+                                        const isHigh = count >= 3;
+
+                                        return (
+                                            <div key={time} style={{
+                                                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                                padding: '12px 16px', borderRadius: '12px',
+                                                background: isHigh ? 'rgba(167, 139, 250, 0.15)' : 'rgba(255,255,255,0.03)',
+                                                border: isHigh ? '1px solid rgba(167, 139, 250, 0.3)' : '1px solid transparent'
                                             }}>
-                                                {item.type === 'vote' ? '🗳️ 시간 조율' : '⚔️ 확정 일정'}
-                                            </span>
-                                            <span style={{ fontSize: '0.7rem', opacity: 0.5 }}>by {item.creator}</span>
-                                        </div>
-                                        <button onClick={() => handleDelete(item.id)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}>
-                                            <Trash2 size={14} />
-                                        </button>
-                                    </div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                                    <span style={{ fontWeight: 'bold', fontSize: '1.1rem', color: isHigh ? '#a78bfa' : 'white' }}>{time}</span>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                        <Users size={14} style={{ opacity: 0.7 }} />
+                                                        <span style={{ fontSize: '0.9rem', opacity: 0.9 }}>{count}명 가능</span>
+                                                        <span style={{ fontSize: '0.75rem', opacity: 0.5 }}>({members.join(', ')})</span>
+                                                    </div>
+                                                </div>
 
-                                    <h4 style={{ margin: '0 0 15px', fontSize: '1.2rem' }}>{item.title}</h4>
-
-                                    {item.type === 'fixed' ? (
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.1rem', color: 'var(--accent-color)' }}>
-                                            <Clock size={16} /> {item.fixedTime}
-                                        </div>
-                                    ) : (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                            {item.timeSlots?.map((slot, idx) => {
-                                                const maxVotes = Math.max(...item.timeSlots.map(s => s.votes.length));
-                                                const isTop = maxVotes > 0 && slot.votes.length === maxVotes;
-                                                const iVoted = slot.votes.includes(user.nickname);
-
-                                                return (
-                                                    <div key={idx}
-                                                        onClick={() => handleVote(item.id, idx, slot.votes)}
+                                                {/* Admin Confirm Button */}
+                                                {(user.isAdmin || user.role === 'Admin') && (
+                                                    <button
+                                                        onClick={() => confirmRaid(time)}
                                                         style={{
-                                                            padding: '10px', borderRadius: '8px',
-                                                            background: iVoted ? 'rgba(78, 209, 197, 0.1)' : 'rgba(0,0,0,0.2)',
-                                                            border: iVoted ? '1px solid var(--accent-color)' : '1px solid transparent',
-                                                            cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                                                            transition: 'all 0.2s'
+                                                            padding: '6px 12px', borderRadius: '8px', border: 'none',
+                                                            background: 'linear-gradient(45deg, #f87171, #ef4444)',
+                                                            color: 'white', fontWeight: 'bold', cursor: 'pointer',
+                                                            display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem'
                                                         }}
                                                     >
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                                            {isTop && <TrendingUp size={14} color="#fbbf24" />}
-                                                            <span style={{ fontWeight: isTop ? 'bold' : 'normal', color: isTop ? '#fbbf24' : 'white' }}>{slot.time}</span>
-                                                        </div>
-                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                                            <div style={{ display: 'flex', marginRight: '5px' }}>
-                                                                {slot.votes.map((v, i) => (
-                                                                    <div key={i} title={v} style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'white', opacity: 0.5, marginLeft: '2px' }} />
-                                                                ))}
-                                                            </div>
-                                                            <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>{slot.votes.length}표</span>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-            </div>
-
-            {/* Modal */}
-            {showModal && (
-                <div style={{
-                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                    background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(5px)',
-                    display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
-                }} onClick={() => setShowModal(false)}>
-                    <div className="glass-panel" style={{ width: '450px', padding: '30px' }} onClick={e => e.stopPropagation()}>
-                        <h3 style={{ margin: '0 0 20px' }}>새 일정 추가</h3>
-                        <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                            <input
-                                placeholder="일정 제목 (예: 3막 보스전)"
-                                value={newItem.title}
-                                onChange={e => setNewItem({ ...newItem, title: e.target.value })}
-                                required
-                                style={{ padding: '12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', borderRadius: '8px' }}
-                            />
-                            <div style={{ display: 'flex', gap: '10px' }}>
-                                <input type="date" value={newItem.date} onChange={e => setNewItem({ ...newItem, date: e.target.value })} required style={{ flex: 1, padding: '12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', borderRadius: '8px' }} />
-                                <select value={newItem.type} onChange={e => setNewItem({ ...newItem, type: e.target.value })} style={{ padding: '12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', borderRadius: '8px' }}>
-                                    <option value="vote" style={{ color: 'black' }}>🗳️ 시간 조율</option>
-                                    <option value="fixed" style={{ color: 'black' }}>⚔️ 확정 일정</option>
-                                </select>
+                                                        <Crown size={12} fill="white" /> 확정
+                                                    </button>
+                                                )}
+                                            </div>
+                                        );
+                                    })
+                                }
                             </div>
-
-                            {newItem.type === 'vote' ? (
-                                <div style={{ background: 'rgba(0,0,0,0.2)', padding: '15px', borderRadius: '8px' }}>
-                                    <label style={{ fontSize: '0.8rem', opacity: 0.7, marginBottom: '5px', display: 'block' }}>후보 시간 추가</label>
-                                    <div style={{ display: 'flex', gap: '5px', marginBottom: '10px' }}>
-                                        <input type="time" value={tempTimeSlot} onChange={e => setTempTimeSlot(e.target.value)} style={{ flex: 1, padding: '8px', borderRadius: '6px', border: 'none' }} />
-                                        <button type="button" onClick={handleAddTimeSlot} style={{ padding: '8px 15px', borderRadius: '6px', background: 'var(--accent-color)', color: 'white', border: 'none', cursor: 'pointer' }}>추가</button>
-                                    </div>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-                                        {newItem.timeSlots.map(slot => (
-                                            <span key={slot.time} style={{ background: 'rgba(255,255,255,0.1)', padding: '5px 10px', borderRadius: '15px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                                {slot.time}
-                                                <X size={12} style={{ cursor: 'pointer' }} onClick={() => handleRemoveTimeSlot(slot.time)} />
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            ) : (
-                                <input type="time" required value={newItem.fixedTime} onChange={e => setNewItem({ ...newItem, fixedTime: e.target.value })} style={{ padding: '12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', borderRadius: '8px' }} />
-                            )}
-
-                            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                                <button type="button" onClick={() => setShowModal(false)} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: 'transparent', border: '1px solid rgba(255,255,255,0.3)', color: 'white', cursor: 'pointer' }}>취소</button>
-                                <button type="submit" style={{ flex: 1, padding: '12px', borderRadius: '8px', background: 'var(--accent-color)', border: 'none', color: 'white', cursor: 'pointer' }}>등록</button>
-                            </div>
-                        </form>
+                        )}
                     </div>
-                </div>
+                </>
             )}
         </div>
     );
