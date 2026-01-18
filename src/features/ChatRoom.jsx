@@ -86,9 +86,16 @@ const ChatRoom = ({ user, isMobile, setActiveTab }) => {
         };
     }, [user?.campId, user?.id]);
 
+    // 3. Auto Scroll (Only on Initial Load)
+    const initialScrollDone = useRef(false);
+
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages, typingUsers]); // Scroll when typing appears too
+        // Scroll only if not loading, has messages, and hasn't scrolled yet
+        if (!loading && messages.length > 0 && !initialScrollDone.current) {
+            messagesEndRef.current?.scrollIntoView({ behavior: "auto" }); // 'auto' for instant jump on load, or 'smooth'
+            initialScrollDone.current = true;
+        }
+    }, [messages, loading]);
 
     const handleImageSelect = (e) => {
         const file = e.target.files[0];

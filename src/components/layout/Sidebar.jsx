@@ -1,6 +1,7 @@
+```javascript
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Home, MessageSquare, Calendar, FolderOpen, Users, Settings, Flag, LogOut, Presentation, Tent, Sword, Music, Heart, Leaf, Zap, Shield, Target, Ghost, Flame, Skull, Wand2, Axe } from 'lucide-react'; // Added Class Icons
+import { Home, MessageSquare, Calendar, FolderOpen, Users, Settings, Flag, LogOut, Presentation, Tent, Sword, Music, Heart, Leaf, Zap, Shield, Target, Ghost, Flame, Skull, Wand2, Axe, Download } from 'lucide-react'; // Added Class Icons
 import logo from '../../assets/logo.svg';
 
 import { db } from '../../lib/firebase';
@@ -213,6 +214,25 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
                             <Settings size={18} />
                             프로필 수정하기
                         </button>
+
+                        {/* Install App Button */}
+                        {deferredPrompt && (
+                            <button
+                                onClick={handleInstallClick}
+                                style={{
+                                    width: '100%', padding: '14px', borderRadius: '12px',
+                                    background: 'linear-gradient(135deg, #06b6d4, #3b82f6)',
+                                    border: 'none',
+                                    color: 'white', fontWeight: 'bold', cursor: 'pointer',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                    marginTop: '10px',
+                                    boxShadow: '0 4px 15px rgba(6, 182, 212, 0.3)'
+                                }}
+                            >
+                                <Download size={18} />
+                                앱 설치하기 (다운로드)
+                            </button>
+                        )}
                     </div>
                 </div>,
                 document.body
@@ -398,8 +418,8 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
                     <div
                         className="logo-shine"
                         style={{
-                            WebkitMaskImage: `url(${logo})`,
-                            maskImage: `url(${logo})`
+                            WebkitMaskImage: `url(${ logo })`,
+                            maskImage: `url(${ logo })`
                         }}
                     />
                 </div>
@@ -474,7 +494,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
                         width: '40px', height: '40px', borderRadius: '50%',
                         background: user.color || 'var(--accent-color)', // User Color
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: `0 2px 10px ${(user.color || '#f59e0b')}66`
+                        boxShadow: `0 2px 10px ${ (user.color || '#f59e0b') } 66`
                     }}>
                         <UserIcon size={20} color="white" />
                     </div>
