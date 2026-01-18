@@ -132,16 +132,38 @@ const CampManagement = ({ user }) => {
                         </div>
 
                         {!u.isAdmin && (
-                            <button
-                                onClick={() => handleKick(u)}
-                                style={{
-                                    padding: '10px 15px', borderRadius: '8px',
-                                    background: 'rgba(248, 113, 113, 0.1)', border: '1px solid rgba(248, 113, 113, 0.3)',
-                                    color: '#f87171', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
-                                }}
-                            >
-                                <Ban size={16} /> 추방
-                            </button>
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                                <button
+                                    onClick={async () => {
+                                        if (!window.confirm(`'${u.nickname}' 님을 관리자로 임명하시겠습니까?`)) return;
+                                        try {
+                                            const { updateDoc, doc } = await import('firebase/firestore');
+                                            await updateDoc(doc(db, "users_v2", u.id), { isAdmin: true, role: 'Admin' });
+                                            alert(`${u.nickname} 님이 관리자가 되었습니다.`);
+                                        } catch (e) {
+                                            console.error(e);
+                                            alert("권한 부여 실패: " + e.message);
+                                        }
+                                    }}
+                                    style={{
+                                        padding: '10px 15px', borderRadius: '8px',
+                                        background: 'rgba(74, 222, 128, 0.1)', border: '1px solid rgba(74, 222, 128, 0.3)',
+                                        color: '#4ade80', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
+                                    }}
+                                >
+                                    <Crown size={16} /> 임명
+                                </button>
+                                <button
+                                    onClick={() => handleKick(u)}
+                                    style={{
+                                        padding: '10px 15px', borderRadius: '8px',
+                                        background: 'rgba(248, 113, 113, 0.1)', border: '1px solid rgba(248, 113, 113, 0.3)',
+                                        color: '#f87171', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
+                                    }}
+                                >
+                                    <Ban size={16} /> 추방
+                                </button>
+                            </div>
                         )}
                     </div>
                 ))}

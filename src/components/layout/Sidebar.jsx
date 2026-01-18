@@ -391,26 +391,38 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
 
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.85rem', opacity: 0.7, marginBottom: '6px' }}>역할 (Role)</label>
-                                <div style={{ display: 'flex', gap: '10px' }}>
-                                    {[
-                                        { id: 'User', label: '대원' },
-                                        { id: 'Admin', label: '대장 (관리자)' }
-                                    ].map(role => (
-                                        <button
-                                            key={role.id}
-                                            onClick={() => setEditRole(role.id)}
-                                            style={{
-                                                flex: 1, padding: '10px', borderRadius: '8px',
-                                                border: editRole === role.id ? '1px solid var(--accent-color)' : '1px solid rgba(255,255,255,0.1)',
-                                                background: editRole === role.id ? 'rgba(212, 160, 23, 0.2)' : 'transparent',
-                                                color: editRole === role.id ? 'var(--accent-color)' : 'rgba(255,255,255,0.6)'
-                                            }}
-                                        >
-                                            {role.label}
-                                        </button>
-                                    ))}
-                                </div>
-                                {editRole === 'Admin' && <p style={{ fontSize: '0.75rem', color: '#f87171', marginTop: '6px' }}>* 관리자 권한은 모든 설정을 변경할 수 있습니다.</p>}
+                                {isAdmin ? (
+                                    <>
+                                        <div style={{ display: 'flex', gap: '10px' }}>
+                                            {[
+                                                { id: 'User', label: '대원' },
+                                                { id: 'Admin', label: '대장 (관리자)' }
+                                            ].map(role => (
+                                                <button
+                                                    key={role.id}
+                                                    onClick={() => setEditRole(role.id)}
+                                                    style={{
+                                                        flex: 1, padding: '10px', borderRadius: '8px',
+                                                        border: editRole === role.id ? '1px solid var(--accent-color)' : '1px solid rgba(255,255,255,0.1)',
+                                                        background: editRole === role.id ? 'rgba(212, 160, 23, 0.2)' : 'transparent',
+                                                        color: editRole === role.id ? 'var(--accent-color)' : 'rgba(255,255,255,0.6)'
+                                                    }}
+                                                >
+                                                    {role.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        {editRole === 'Admin' && <p style={{ fontSize: '0.75rem', color: '#f87171', marginTop: '6px' }}>* 관리자 권한은 모든 설정을 변경할 수 있습니다.</p>}
+                                    </>
+                                ) : (
+                                    <div style={{
+                                        padding: '12px', borderRadius: '8px',
+                                        background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                                        color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', textAlign: 'center'
+                                    }}>
+                                        🔒 관리자 권한은 대장만이 부여할 수 있습니다.
+                                    </div>
+                                )}
                             </div>
 
                             <button

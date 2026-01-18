@@ -90,7 +90,7 @@ const ChatRoom = ({ user }) => {
     }
 
     return (
-        <div className="glass-panel" style={{ height: '100%', minHeight: '500px', display: 'flex', flexDirection: 'column', padding: 0 }}>
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: 0, position: 'absolute', inset: 0 }}>
             <div style={{ padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
                 <h2 style={{ fontSize: '1.2rem', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Bot color="#4fd1c5" /> 파티 작전 회의실
