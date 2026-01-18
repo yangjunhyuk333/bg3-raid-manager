@@ -1,12 +1,23 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Home, MessageSquare, Calendar, FolderOpen, Users, Settings, Flag, LogOut, Presentation } from 'lucide-react';
+import { Home, MessageSquare, Calendar, FolderOpen, Users, Settings, Flag, LogOut, Presentation, Tent } from 'lucide-react'; // Added Tent
 import logo from '../../assets/logo.svg';
 
 import { collection, onSnapshot, doc, query, where } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
-const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, setShowSurvivors }) => {
+const CampfireIcon = ({ size = 20, color = "currentColor" }) => (
+    <div style={{ position: 'relative', width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Tent size={size} color={color} />
+        <Settings
+            size={size * 0.5}
+            color={color}
+            style={{ position: 'absolute', bottom: -2, right: -2, background: '#1a1a2e', borderRadius: '50%' }}
+        />
+    </div>
+);
+
+const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, setShowSurvivors }) => { // Ensure props are updated here too if previous failed
     // 1. STATE DECLARATIONS
     // const [onlineUsersCount, setOnlineUsersCount] = React.useState(0); // Removed internal state
     const [maxMembers, setMaxMembers] = React.useState(4);
@@ -97,7 +108,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
     ];
 
     if (isAdmin) {
-        menuItems.push({ id: 'admin', label: '야영지 관리', icon: Settings });
+        menuItems.push({ id: 'admin', label: '야영지 관리', icon: CampfireIcon });
     }
 
     // Filter Profile tab from Desktop Menu
@@ -113,7 +124,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
             { id: 'home', icon: Home, label: '홈' },
             { id: 'calendar', icon: Calendar, label: '일정' },
             { id: 'tactics', icon: Flag, label: '전술' },
-            ...(isAdmin ? [{ id: 'admin', icon: Settings, label: '관리' }] : []),
+            ...(isAdmin ? [{ id: 'admin', icon: CampfireIcon, label: '관리' }] : []),
             { id: 'profile', icon: Users, label: '프로필' }
         ];
 
@@ -126,7 +137,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
                     bottom: 'calc(100px + env(safe-area-inset-bottom))',
                     right: '20px',
                     zIndex: 1001,
-                    display: 'flex',
+                    display: activeTab === 'chat' ? 'none' : 'flex', // Hide in Chat
                     flexDirection: 'column', // Stack vertically
                     gap: '12px'
                 }}>

@@ -12,27 +12,21 @@ export default defineConfig({
       manifest: {
         name: 'BG3 Raid Manager',
         short_name: 'RG3 Manager',
-        description: 'Baldur\'s Gate 3 Raid Management App',
-        theme_color: '#1a1a2e',
-        background_color: '#1a1a2e',
+        description: '발더스 게이트 3 멀티플레이 파티 관리',
+        theme_color: '#0a0a10',
+        background_color: '#0a0a10',
         display: 'standalone',
         orientation: 'portrait',
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: 'app-icon.jpg',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/jpeg'
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'app-icon.jpg',
             sizes: '512x512',
-            type: 'image/png'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable'
+            type: 'image/jpeg'
           }
         ]
       }
