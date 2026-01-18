@@ -10,6 +10,7 @@ import TacticsBoard from '../../features/tactics/TacticsBoard';
 import SurvivorsModal from '../../features/SurvivorsModal';
 import { db } from '../../lib/firebase';
 import { doc, updateDoc, serverTimestamp, collection, query, where, onSnapshot } from 'firebase/firestore';
+import { Users } from 'lucide-react';
 
 const Layout = () => {
     const [activeTab, setActiveTab] = useState('home');
@@ -177,6 +178,28 @@ const Layout = () => {
                     {renderContent()}
                 </div>
             </main>
+
+            {/* Mobile Top Right Profile Shortcut */}
+            {isMobile && (
+                <div
+                    onClick={() => setShowProfileView(true)}
+                    style={{
+                        position: 'fixed',
+                        top: '15px',
+                        right: '15px',
+                        zIndex: 2500,
+                        width: '42px', height: '42px',
+                        borderRadius: '50%',
+                        background: user?.color || '#a78bfa',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 4px 15px rgba(0,0,0,0.4)',
+                        border: '2px solid rgba(255,255,255,0.3)',
+                        cursor: 'pointer'
+                    }}
+                >
+                    <Users size={20} color="white" />
+                </div>
+            )}
 
             {/* Global Survivors Modal */}
             {showSurvivors && (
