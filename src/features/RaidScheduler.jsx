@@ -4,7 +4,7 @@ import { Calendar as CalendarIcon, Plus, Trash2, Users, Clock, CheckCircle2, Tre
 import { db } from '../lib/firebase';
 import { collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, updateDoc, where } from 'firebase/firestore';
 
-const RaidScheduler = ({ user }) => {
+const RaidScheduler = ({ user, isMobile }) => {
     const [schedules, setSchedules] = useState([]);
     const [date, setDate] = useState(new Date());
     const [loading, setLoading] = useState(true);
@@ -121,9 +121,9 @@ const RaidScheduler = ({ user }) => {
     return (
         <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             {/* Calendar Section */}
-            <div className="glass-panel" style={{ padding: '20px' }}>
+            <div className="glass-panel" style={{ padding: isMobile ? '15px' : '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'white', margin: 0 }}>
+                    <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'white', margin: 0, fontSize: isMobile ? '1.2rem' : '1.5rem' }}>
                         <CalendarIcon className="text-accent" /> 모험 일정 (Calendar)
                     </h2>
                     <button
@@ -132,18 +132,18 @@ const RaidScheduler = ({ user }) => {
                             setShowModal(true);
                         }}
                         className="glass-button"
-                        style={{ background: 'var(--accent-color)', border: 'none', padding: '10px 20px', borderRadius: '8px', color: 'white', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px' }}
+                        style={{ background: 'var(--accent-color)', border: 'none', padding: isMobile ? '8px 12px' : '10px 20px', borderRadius: '8px', color: 'white', cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '5px', fontSize: isMobile ? '0.8rem' : '1rem' }}
                     >
-                        <Plus size={18} /> 일정 추가
+                        <Plus size={isMobile ? 14 : 18} /> 일정 추가
                     </button>
                 </div>
 
                 <style>{`
                     .react-calendar { background: transparent !important; border: none !important; width: 100% !important; color: white !important; font-family: inherit; }
-                    .react-calendar__navigation button { color: white; min-width: 44px; background: none; font-size: 1.2rem; }
+                    .react-calendar__navigation button { color: white; min-width: 44px; background: none; font-size: ${isMobile ? '1rem' : '1.2rem'}; }
                     .react-calendar__navigation button:enabled:hover, .react-calendar__navigation button:enabled:focus { background-color: rgba(255,255,255,0.1); }
                     .react-calendar__month-view__weekdays { text-align: center; text-transform: uppercase; font-weight: bold; font-size: 0.8em; opacity: 0.7; color: var(--accent-color); }
-                    .react-calendar__month-view__days__day { color: white; padding: 15px; background: transparent; border: none; }
+                    .react-calendar__month-view__days__day { color: white; padding: ${isMobile ? '10px' : '15px'}; background: transparent; border: none; }
                     .react-calendar__tile:enabled:hover, .react-calendar__tile:enabled:focus { background-color: rgba(255,255,255,0.1); border-radius: 12px; }
                     .react-calendar__tile--now { background: rgba(255,255,255,0.1) !important; border-radius: 12px; }
                     .react-calendar__tile--active { background: var(--accent-color) !important; color: white !important; border-radius: 12px; }
@@ -159,7 +159,7 @@ const RaidScheduler = ({ user }) => {
             </div>
 
             {/* List Section */}
-            <div className="glass-panel" style={{ padding: '20px', minHeight: '200px' }}>
+            <div className="glass-panel" style={{ padding: isMobile ? '15px' : '20px', minHeight: '200px' }}>
                 <h3 style={{ margin: '0 0 15px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>
                     {date.toLocaleDateString()} 일정 목록
                 </h3>
@@ -182,7 +182,7 @@ const RaidScheduler = ({ user }) => {
                             </button>
                         </div>
                     ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '15px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: '15px' }}>
                             {filteredSchedules.map((item) => (
                                 <div key={item.id} style={{
                                     background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '12px',
