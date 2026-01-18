@@ -418,21 +418,6 @@ const ProfileSetup = ({ onComplete, initialData, isMobile }) => {
                                     }}
                                 />
                             </div>
-
-                            {/* Intro Text - Moved here and resized for mobile */}
-                            <p style={{
-                                marginTop: isMobile ? '5px' : '15px',
-                                opacity: 0.8,
-                                fontSize: isMobile ? '0.75rem' : '0.95rem', // Smaller on mobile
-                                lineHeight: '1.6',
-                                fontWeight: '400',
-                                textAlign: 'center',
-                                color: 'rgba(255,255,255,0.9)'
-                            }}>
-                                동료들과 함께 나만의 이야기를 만들어보세요.<br />
-                                <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>발더스 게이트 3 원정대</span>를 위한<br />
-                                필수 컴패니언 앱
-                            </p>
                         </div>
 
                         {/* Buttons Section */}
@@ -456,6 +441,21 @@ const ProfileSetup = ({ onComplete, initialData, isMobile }) => {
                                 <Crown size={20} />
                                 새 야영지 건설 (관리자)
                             </button>
+
+                            {/* Intro Text - Moved below buttons */}
+                            <p style={{
+                                marginTop: '10px',
+                                opacity: 0.8,
+                                fontSize: isMobile ? '0.75rem' : '0.9rem',
+                                lineHeight: '1.5',
+                                fontWeight: '400',
+                                textAlign: 'center',
+                                color: 'rgba(255,255,255,0.7)'
+                            }}>
+                                동료들과 함께 나만의 이야기를 만들어보세요.<br />
+                                <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>발더스 게이트 3 원정대</span>를 위한<br />
+                                필수 컴패니언 앱
+                            </p>
                         </div>
                     </div>
                 </div>
