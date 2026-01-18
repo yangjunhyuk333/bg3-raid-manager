@@ -154,8 +154,22 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
                     </button>
                 )}
 
-                {/* Final User Logo - rendering as-is without blend modes */}
-                <img src={logo} alt="BG3" style={{ width: '100%', height: 'auto', marginBottom: '10px' }} onError={(e) => e.target.style.display = 'none'} />
+                {/* Final User Logo with Shine Effect */}
+                <div className="logo-wrapper" style={{ position: 'relative', width: '100%', marginBottom: '10px' }}>
+                    <img
+                        src={logo}
+                        alt="BG3"
+                        style={{ width: '100%', height: 'auto', display: 'block' }}
+                        onError={(e) => e.target.style.display = 'none'}
+                    />
+                    <div
+                        className="logo-shine"
+                        style={{
+                            WebkitMaskImage: `url(${logo})`,
+                            maskImage: `url(${logo})`
+                        }}
+                    />
+                </div>
 
                 <div style={{
                     display: 'inline-flex', alignItems: 'center', gap: '6px',
