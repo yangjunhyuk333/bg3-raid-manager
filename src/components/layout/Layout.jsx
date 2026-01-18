@@ -6,7 +6,7 @@ import RaidScheduler from '../../features/RaidScheduler';
 import SaveAnalyzer from '../../features/SaveAnalyzer';
 import ProfileSetup from '../../features/ProfileSetup';
 import CampManagement from '../../features/CampManagement';
-import TacticsBoard from '../../features/TacticsBoard';
+import TacticsBoard from '../../features/tactics/TacticsBoard';
 import SurvivorsModal from '../../features/SurvivorsModal';
 import { db } from '../../lib/firebase';
 import { doc, updateDoc, serverTimestamp, collection, query, where, onSnapshot } from 'firebase/firestore';
