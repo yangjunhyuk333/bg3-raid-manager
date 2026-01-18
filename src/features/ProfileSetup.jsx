@@ -396,15 +396,83 @@ const ProfileSetup = ({ onComplete, initialData, user, isMobile }) => {
 
     // If Profile View, we just render it (no modaling needed for this simple view usually, but could be modal too)
     // For now keeping Profile View as a "page" because it replaces the main content usually.
+    // If Profile View
     if (mode === 'profile_view' && data) {
+        const [isEditing, setIsEditing] = useState(false);
+        const [editName, setEditName] = useState(data.nickname);
+        const [editClassVal, setEditClassVal] = useState(CLASSES.find(c => c.name === data.className));
+        const [editColorVal, setEditColorVal] = useState(data.color || PROFILE_COLORS[0]);
+        const [editLoading, setEditLoading] = useState(false);
+
+        const handleSaveProfile = async () => {
+            if (!editName.trim()) return alert("닉네임을 입력해주세요.");
+            setEditLoading(true);
+            try {
+                const userRef = doc(db, "users_v2", data.id);
+                const updates = {
+                    nickname: editName,
+                    className: editClassVal?.name || data.className,
+                    classId: editClassVal?.id || data.classId,
+                    color: editColorVal
+                };
+
+                await updateDoc(userRef, updates);
+
+                const updatedUser = { ...data, ...updates };
+                localStorage.setItem('bg3_user_profile', JSON.stringify(updatedUser));
+
+                // Notify parent to update global user state if possible, or just reload/alert
+                alert("프로필이 수정되었습니다. (새로고침 권장)");
+                window.location.reload();
+            } catch (e) {
+                console.error(e);
+                alert("수정 실패: " + e.message);
+            } finally {
+                setEditLoading(false);
+            }
+        };
+
+        if (isEditing) {
+            return (
+                <div className="glass-panel" style={{ maxWidth: '500px', width: '100%', margin: isMobile ? '20px auto' : '40px auto', padding: '30px', textAlign: 'center', position: 'relative' }}>
+                    <h3 style={{ fontSize: '1.5rem', marginBottom: '25px', color: 'white' }}>프로필 수정</h3>
+
+                    <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                        <div>
+                            <label style={{ fontSize: '0.9rem', opacity: 0.7, marginLeft: '5px', marginBottom: '5px', display: 'block' }}>닉네임</label>
+                            <input
+                                value={editName}
+                                onChange={e => setEditName(e.target.value)}
+                                style={inputStyle}
+                            />
+                        </div>
+
+                        <ColorSelector selected={editColorVal} onSelect={setEditColorVal} />
+
+                        <div>
+                            <label style={{ fontSize: '0.9rem', opacity: 0.7, marginLeft: '5px', marginBottom: '5px', display: 'block' }}>직업</label>
+                            <ClassSelector selected={editClassVal} onSelect={setEditClassVal} />
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px', marginTop: '30px' }}>
+                        <button onClick={() => setIsEditing(false)} style={{ flex: 1, padding: '15px', borderRadius: '12px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', cursor: 'pointer' }}>取消</button>
+                        <button onClick={handleSaveProfile} style={{ flex: 2, padding: '15px', borderRadius: '12px', background: 'var(--accent-color)', border: 'none', color: 'white', fontWeight: 'bold', cursor: 'pointer' }} disabled={editLoading}>
+                            {editLoading ? '저장 중...' : '저장하기'}
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
         return (
-            <div className="glass-panel" style={{ maxWidth: '450px', width: '100%', margin: '40px auto', padding: '40px', textAlign: 'center' }}>
+            <div className="glass-panel" style={{ maxWidth: '450px', width: '100%', margin: isMobile ? '20px auto 80px' : '40px auto', padding: '40px', textAlign: 'center' }}>
                 <div style={{ textAlign: 'center', marginBottom: '30px' }}>
                     <div style={{
                         width: '100px', height: '100px', borderRadius: '50%',
-                        background: selectedClass?.color || 'gray',
+                        background: data.color || selectedClass?.color || 'gray',
                         margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: `0 0 30px ${selectedClass?.color || 'gray'}`
+                        boxShadow: `0 0 30px ${data.color || selectedClass?.color || 'gray'}`
                     }}>
                         {selectedClass && <selectedClass.icon size={50} color="white" />}
                     </div>
@@ -427,8 +495,12 @@ const ProfileSetup = ({ onComplete, initialData, user, isMobile }) => {
                     </p>
                 </div>
 
-                <button onClick={handleLogout} style={{ ...btnStyle, background: 'rgba(248, 113, 113, 0.1)', border: '1px solid rgba(248, 113, 113, 0.3)', color: '#f87171', marginTop: '40px' }}>
-                    <LogOut size={20} />
+                <button onClick={() => setIsEditing(true)} style={{ ...btnStyle, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', marginTop: '30px' }}>
+                    <RefreshCw size={18} /> 정보 수정
+                </button>
+
+                <button onClick={handleLogout} style={{ ...btnStyle, background: 'rgba(248, 113, 113, 0.1)', border: '1px solid rgba(248, 113, 113, 0.3)', color: '#f87171', marginTop: '10px' }}>
+                    <LogOut size={18} />
                     로그아웃
                 </button>
             </div>

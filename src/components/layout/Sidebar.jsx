@@ -125,106 +125,62 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
 
     // 5. RENDER - MOBILE NAV
     if (isMobile) {
-        // Mobile Layout: Floating Pill + Top Actions
+        // Mobile Layout: Bottom Navigation Bar Only (Clean Design)
 
-        // 1. Bottom Nav Items (Max 4-5)
-        // Order: Home, Calendar, Tactics, (Admin), Profile
+        // Items: Home, Calendar, Tactics, Chat, Profile (5 Items)
+        // If Admin: +1 (6 Items - might need scroll or tighter gap)
         const mobileItems = [
             { id: 'home', icon: Home, label: '홈' },
             { id: 'calendar', icon: Calendar, label: '일정' },
-            { id: 'tactics', icon: Flag, label: '전술' },
+            { id: 'tactics', icon: Presentation, label: '전술' }, // Updated Icon to resemble Board
+            { id: 'chat', icon: MessageSquare, label: '채팅' },
             ...(isAdmin ? [{ id: 'admin', icon: CampfireIcon, label: '관리' }] : []),
             { id: 'profile', icon: Users, label: '프로필' }
         ];
 
         return (
-            <>
-                {/* 1. Floating Actions (Chat & Save) - Moved to Bottom Right */}
-                {/* Stacked vertically for better thumb reach */}
-                <div style={{
-                    position: 'fixed',
-                    bottom: 'calc(100px + env(safe-area-inset-bottom))',
-                    right: '20px',
-                    zIndex: 1001,
-                    display: activeTab === 'chat' ? 'none' : 'flex', // Hide in Chat
-                    flexDirection: 'column', // Stack vertically
-                    gap: '12px'
-                }}>
-                    {/* Save Button */}
-                    <button
-                        onClick={() => setActiveTab('save')}
-                        style={{
-                            width: '45px', height: '45px', borderRadius: '50%',
-                            background: activeTab === 'save' ? 'var(--accent-color)' : 'rgba(20, 20, 30, 0.7)',
-                            border: '1px solid rgba(255,255,255,0.2)',
-                            backdropFilter: 'blur(10px)',
-                            color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-                            transition: 'all 0.2s'
-                        }}
-                    >
-                        <FolderOpen size={20} />
-                    </button>
-
-                    {/* Chat Button */}
-                    <button
-                        onClick={() => setActiveTab('chat')}
-                        style={{
-                            width: '45px', height: '45px', borderRadius: '50%',
-                            background: activeTab === 'chat' ? 'var(--accent-color)' : 'rgba(20, 20, 30, 0.7)',
-                            border: '1px solid rgba(255,255,255,0.2)',
-                            backdropFilter: 'blur(10px)',
-                            color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
-                            transition: 'all 0.2s'
-                        }}
-                    >
-                        <MessageSquare size={20} />
-                    </button>
-                </div>
-                {/* Top Left Online Count Removed (Duplicate) */}
-
-                {/* 3. Bottom Floating Pill Navigation */}
-                <nav className="glass" style={{
-                    position: 'fixed',
-                    bottom: 'calc(25px + env(safe-area-inset-bottom))',
-                    left: '20px',
-                    right: '20px',
-                    height: '70px',
-                    zIndex: 1000,
-                    display: activeTab === 'chat' ? 'none' : 'flex', // Hide in Chat
-                    justifyContent: 'space-between', alignItems: 'center',
-                    borderRadius: '40px', // Rounder Pill
-                    border: '1px solid rgba(255,255,255,0.15)',
-                    borderTop: '1px solid rgba(255,255,255,0.25)', // Shine effect
-                    backdropFilter: 'blur(25px) saturate(180%)', // Emotional Blur
-                    background: 'linear-gradient(145deg, rgba(30, 30, 45, 0.6), rgba(10, 10, 20, 0.8))',
-                    padding: '0 25px',
-                    boxShadow: '0 15px 35px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1)'
-                }}>
-                    {mobileItems.map((item) => {
-                        const Icon = item.icon;
-                        const isActive = activeTab === item.id;
-                        return (
-                            <button
-                                key={item.id}
-                                onClick={() => setActiveTab(item.id)}
-                                style={{
-                                    background: isActive ? 'var(--accent-color)' : 'transparent',
-                                    borderRadius: '50%', // Circle highlight
-                                    width: '45px', height: '45px',
-                                    border: 'none',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    color: isActive ? 'white' : 'rgba(255,255,255,0.5)',
-                                    transition: 'all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
-                                }}
-                            >
-                                <Icon size={22} strokeWidth={2.5} />
-                            </button>
-                        );
-                    })}
-                </nav>
-            </>
+            <nav className="glass" style={{
+                position: 'fixed',
+                bottom: '20px',
+                left: '20px', right: '20px',
+                margin: '0 auto', maxWidth: '500px', // Centered Max Width
+                height: '70px',
+                zIndex: 1000,
+                display: 'flex',
+                justifyContent: 'space-around', alignItems: 'center',
+                borderRadius: '24px', // More modern shape
+                border: '1px solid rgba(255,255,255,0.15)',
+                borderTop: '1px solid rgba(255,255,255,0.25)',
+                backdropFilter: 'blur(20px) saturate(180%)',
+                background: 'rgba(20, 20, 30, 0.85)',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+                padding: '0 10px'
+            }}>
+                {mobileItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeTab === item.id;
+                    return (
+                        <button
+                            key={item.id}
+                            onClick={() => setActiveTab(item.id)}
+                            style={{
+                                background: isActive ? 'rgba(255,255,255,0.1)' : 'transparent',
+                                borderRadius: '16px',
+                                width: '50px', height: '50px',
+                                border: 'none',
+                                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                color: isActive ? 'var(--accent-color)' : 'rgba(255,255,255,0.5)',
+                                transition: 'all 0.2s',
+                                gap: '4px'
+                            }}
+                        >
+                            <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+                            {/* Optional: Tiny Dot for active instead of background? Or just Icon color change. */}
+                            {isActive && <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--accent-color)' }} />}
+                        </button>
+                    );
+                })}
+            </nav>
         );
     }
 
