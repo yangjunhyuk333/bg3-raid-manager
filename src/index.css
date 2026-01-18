@@ -147,9 +147,12 @@ body {
   backdrop-filter: blur(8px);
   z-index: 9999;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  /* Changed from center to allow scrolling */
   justify-content: center;
   padding: 20px;
+  overflow-y: auto;
+  /* Critical for mobile keyboards */
   animation: fadeIn 0.3s ease-out;
 }
 
@@ -163,6 +166,8 @@ body {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 
   /* Layout & Shape */
+  margin: auto;
+  /* Safe centering */
   border-radius: 30px;
   /* Rounder corners */
   width: 90%;
