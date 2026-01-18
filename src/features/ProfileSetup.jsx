@@ -421,7 +421,7 @@ const ProfileSetup = ({ onComplete, initialData, isMobile }) => {
 
                             {/* Intro Text - Moved here and resized for mobile */}
                             <p style={{
-                                marginTop: isMobile ? '10px' : '30px',
+                                marginTop: isMobile ? '5px' : '15px',
                                 opacity: 0.8,
                                 fontSize: isMobile ? '0.75rem' : '0.95rem', // Smaller on mobile
                                 lineHeight: '1.6',
