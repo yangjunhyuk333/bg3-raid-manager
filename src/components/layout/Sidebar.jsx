@@ -7,123 +7,34 @@ import { collection, onSnapshot, doc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
 const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
-    // Real-time Camp Users Count
+    // 1. STATE DECLARATIONS
     const [onlineUsersCount, setOnlineUsersCount] = React.useState(0);
     const [maxMembers, setMaxMembers] = React.useState(4);
-    const isAdmin = user?.isAdmin === true;
-    // Profile Modals State
+
+    // Profile & Admin UI State
     const [showProfileView, setShowProfileView] = React.useState(false);
     const [showProfileEdit, setShowProfileEdit] = React.useState(false);
-
-    // ... (rest of state)
-
-    // ... inside Sidebar return ...
-
-    {/* Sidebar Footer: User Profile & Logout */ }
-    <div
-        onClick={() => setShowProfileView(true)} // Changed to open View Modal
-        style={{
-            marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.1)',
-            display: 'flex', alignItems: 'center', gap: '10px',
-            cursor: 'pointer', transition: 'background 0.2s',
-            padding: '10px', borderRadius: '12px'
-        }}
-    // ... styles
-    >
-        {/* ... user icon and name ... */}
-    </div>
-
-    {/* Logout Confirmation Modal - Portal to Body */ }
-    {
-        showLogoutConfirm && createPortal(
-            // ... (existing logout modal)
-            <div className="modal-overlay" onClick={() => setShowLogoutConfirm(false)}>
-                {/* ... */}
-            </div>,
-            document.body
-        )
-    }
-
-    {/* Profile View Modal - Portal to Body (NEW) */ }
-    {
-        showProfileView && createPortal(
-            <div className="modal-overlay" onClick={() => setShowProfileView(false)}>
-                <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', padding: '30px', textAlign: 'center' }}>
-                    <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--accent-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: '0 0 20px rgba(212, 160, 23, 0.4)' }}>
-                        <Users size={40} color="white" />
-                    </div>
-                    <h3 style={{ fontSize: '1.6rem', marginBottom: '5px', fontWeight: 'bold' }}>{user?.nickname || '모험가'}</h3>
-                    <p style={{ color: 'var(--accent-color)', marginBottom: '20px', fontSize: '0.9rem', fontWeight: 'bold' }}>
-                        {user?.className || 'Classless'} <span style={{ opacity: 0.5 }}>|</span> {user?.role === 'Admin' ? '대장 (관리자)' : '대원'}
-                    </p>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '25px', textAlign: 'left' }}>
-                        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px' }}>
-                            <p style={{ fontSize: '0.75rem', opacity: 0.6, marginBottom: '4px' }}>직업</p>
-                            <p style={{ fontWeight: 'bold' }}>{user?.className || '-'}</p>
-                        </div>
-                        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px' }}>
-                            <p style={{ fontSize: '0.75rem', opacity: 0.6, marginBottom: '4px' }}>신분</p>
-                            <p style={{ fontWeight: 'bold' }}>{user?.role === 'Admin' ? '관리자' : '일반 대원'}</p>
-                        </div>
-                    </div>
-
-                    <button
-                        onClick={() => {
-                            setShowProfileView(false);
-                            setShowProfileEdit(true);
-                        }}
-                        style={{
-                            width: '100%', padding: '14px', borderRadius: '12px',
-                            background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
-                            color: 'white', fontWeight: 'bold', cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                            transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                    >
-                        < Settings size={18} />
-                        프로필 수정하기
-                    </button>
-                </div>
-            </div>,
-            document.body
-        )
-    }
-
-    {/* Profile Edit Modal - Portal to Body */ }
-    {
-        showProfileEdit && createPortal(
-            <div className="modal-overlay" onClick={() => setShowProfileEdit(false)}>
-                <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', padding: '30px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-                        <h3 style={{ fontSize: '1.4rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <Users size={24} color="var(--accent-color)" />
-                            프로필 수정
-                        </h3>
-                        <button onClick={() => setShowProfileEdit(false)} style={{ background: 'transparent', color: 'rgba(255,255,255,0.5)' }}>x</button>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                        {/* ... (existing fields) ... */}
-                        {/* ... (editName, editClass, editRole inputs) ... */}
-                        <button
-                            onClick={handleProfileUpdate}
-                        // ... style
-                        >
-                            저장하기
-                        </button>
-                    </div>
-                </div>
-            </div>,
-            document.body
-        )
-    }
     const [showAdminReset, setShowAdminReset] = React.useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
 
-    // Secret Admin Toggle (Shift + Alt + R)
+    // Profile Edit Form State
+    const [editName, setEditName] = React.useState(user?.nickname || '');
+    const [editClass, setEditClass] = React.useState(user?.className || 'Warrior');
+    const [editRole, setEditRole] = React.useState(user?.role || 'User');
+
+    const isAdmin = user?.isAdmin === true;
+
+    // 2. EFFECTS
+    // Sync profile form data when user prop updates
+    React.useEffect(() => {
+        if (user) {
+            setEditName(user.nickname || '');
+            setEditClass(user.className || 'Warrior');
+            setEditRole(user.role || 'User');
+        }
+    }, [user, showProfileEdit]);
+
+    // Admin Toggle Shortcut (Shift + Alt + R)
     React.useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.shiftKey && e.altKey && (e.key === 'R' || e.key === 'r')) {
@@ -134,26 +45,13 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
+    // 3. HANDLERS
     const handleLogout = () => {
         // Clear all local data to ensure fresh login
         localStorage.clear();
         sessionStorage.clear();
         window.location.reload();
     };
-
-    // Profile Edit State
-    const [editName, setEditName] = React.useState(user?.nickname || '');
-    const [editClass, setEditClass] = React.useState(user?.className || 'Warrior');
-    const [editRole, setEditRole] = React.useState(user?.role || 'User');
-
-    // Sync state when user prop updates
-    React.useEffect(() => {
-        if (user) {
-            setEditName(user.nickname || '');
-            setEditClass(user.className || 'Warrior');
-            setEditRole(user.role || 'User');
-        }
-    }, [user, showProfileEdit]);
 
     const handleProfileUpdate = async () => {
         if (!editName.trim()) return alert("Nickname is required");
@@ -176,6 +74,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
         }
     };
 
+    // 4. MENU ITEMS & ASSETS
     const bg3Classes = ["Barbarian", "Bard", "Cleric", "Druid", "Fighter", "Monk", "Paladin", "Ranger", "Rogue", "Sorcerer", "Warlock", "Wizard"];
 
     const menuItems = [
@@ -194,6 +93,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
     // Filter Profile tab from Desktop Menu
     const desktopMenuItems = menuItems.filter(item => item.id !== 'profile');
 
+    // 5. RENDER - MOBILE NAV
     if (isMobile) {
         // Limited items for Mobile Bottom Nav (Max 5)
         const mobileItems = menuItems.slice(0, 4); // Home, Chat, Calendar, Tactics
@@ -253,6 +153,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
         );
     }
 
+    // 6. RENDER - DESKTOP SIDEBAR
     return (
         <aside className="glass" style={{
             width: '280px', height: '100vh',
@@ -338,7 +239,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
 
             {/* Sidebar Footer: User Profile & Logout */}
             <div
-                onClick={() => setShowProfileEdit(true)}
+                onClick={() => setShowProfileView(true)}
                 style={{
                     marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.1)',
                     display: 'flex', alignItems: 'center', gap: '10px',
@@ -347,7 +248,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
                 }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                title="프로필 수정하려면 클릭"
+                title="프로필 보기"
             >
                 <div style={{
                     width: '40px', height: '40px', borderRadius: '50%', background: 'var(--accent-color)',
@@ -376,7 +277,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
                 </button>
             </div>
 
-            {/* Logout Confirmation Modal - Portal to Body */}
+            {/* 1. Logout Confirmation Modal - Portal to Body */}
             {showLogoutConfirm && createPortal(
                 <div className="modal-overlay" onClick={() => setShowLogoutConfirm(false)}>
                     <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '350px', padding: '30px', textAlign: 'center' }}>
@@ -404,14 +305,63 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
                 document.body
             )}
 
-            {/* Profile Edit Modal - Portal to Body */}
+            {/* 2. Profile View Modal - Portal to Body */}
+            {showProfileView && createPortal(
+                <div className="modal-overlay" onClick={() => setShowProfileView(false)}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', padding: '30px', textAlign: 'center' }}>
+                        <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'var(--accent-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: '0 0 20px rgba(212, 160, 23, 0.4)' }}>
+                            <Users size={40} color="white" />
+                        </div>
+                        <h3 style={{ fontSize: '1.6rem', marginBottom: '5px', fontWeight: 'bold' }}>{user?.nickname || '모험가'}</h3>
+                        <p style={{ color: 'var(--accent-color)', marginBottom: '20px', fontSize: '0.9rem', fontWeight: 'bold' }}>
+                            {user?.className || 'Classless'} <span style={{ opacity: 0.5 }}>|</span> {user?.role === 'Admin' ? '대장 (관리자)' : '대원'}
+                        </p>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '25px', textAlign: 'left' }}>
+                            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px' }}>
+                                <p style={{ fontSize: '0.75rem', opacity: 0.6, marginBottom: '4px' }}>직업</p>
+                                <p style={{ fontWeight: 'bold' }}>{user?.className || '-'}</p>
+                            </div>
+                            <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px' }}>
+                                <p style={{ fontSize: '0.75rem', opacity: 0.6, marginBottom: '4px' }}>신분</p>
+                                <p style={{ fontWeight: 'bold' }}>{user?.role === 'Admin' ? '관리자' : '일반 대원'}</p>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => {
+                                setShowProfileView(false);
+                                setShowProfileEdit(true);
+                            }}
+                            style={{
+                                width: '100%', padding: '14px', borderRadius: '12px',
+                                background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
+                                color: 'white', fontWeight: 'bold', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                                transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                        >
+                            <Settings size={18} />
+                            프로필 수정하기
+                        </button>
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {/* 3. Profile Edit Modal - Portal to Body */}
             {showProfileEdit && createPortal(
                 <div className="modal-overlay" onClick={() => setShowProfileEdit(false)}>
                     <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', padding: '30px' }}>
-                        <h3 style={{ fontSize: '1.4rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <Users size={24} color="var(--accent-color)" />
-                            프로필 수정
-                        </h3>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                            <h3 style={{ fontSize: '1.4rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <Users size={24} color="var(--accent-color)" />
+                                프로필 수정
+                            </h3>
+                            <button onClick={() => setShowProfileEdit(false)} style={{ background: 'transparent', color: 'rgba(255,255,255,0.5)' }}>x</button>
+                        </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                             <div>
