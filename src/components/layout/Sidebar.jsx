@@ -40,6 +40,19 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
 
     const bg3Classes = ["Barbarian", "Bard", "Cleric", "Druid", "Fighter", "Monk", "Paladin", "Ranger", "Rogue", "Sorcerer", "Warlock", "Wizard"];
 
+    const menuItems = [
+        { id: 'home', label: '홈', icon: Home },
+        { id: 'chat', label: '채팅', icon: MessageSquare },
+        { id: 'calendar', label: '일정', icon: Calendar },
+        { id: 'tactics', label: '전술판', icon: Flag },
+        { id: 'save', label: '세이브', icon: FolderOpen },
+        { id: 'profile', label: '프로필', icon: Users },
+    ];
+
+    if (isAdmin) {
+        menuItems.push({ id: 'admin', label: '야영지 관리', icon: Settings });
+    }
+
     // Filter Profile tab from Desktop Menu
     const desktopMenuItems = menuItems.filter(item => item.id !== 'profile');
 
