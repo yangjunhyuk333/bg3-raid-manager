@@ -177,17 +177,20 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
                 {/* 3. Bottom Floating Pill Navigation */}
                 <nav className="glass" style={{
                     position: 'fixed',
-                    bottom: 'calc(20px + env(safe-area-inset-bottom))',
+                    bottom: 'calc(25px + env(safe-area-inset-bottom))',
                     left: '20px',
                     right: '20px',
-                    height: '65px',
+                    height: '70px',
                     zIndex: 1000,
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    borderRadius: '35px', // Pill Shape
+                    display: activeTab === 'chat' ? 'none' : 'flex', // Hide in Chat
+                    justifyContent: 'space-between', alignItems: 'center',
+                    borderRadius: '40px', // Rounder Pill
                     border: '1px solid rgba(255,255,255,0.15)',
-                    backdropFilter: 'blur(20px)', background: 'rgba(15, 15, 25, 0.85)',
-                    padding: '0 15px',
-                    boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+                    borderTop: '1px solid rgba(255,255,255,0.25)', // Shine effect
+                    backdropFilter: 'blur(25px) saturate(180%)', // Emotional Blur
+                    background: 'linear-gradient(145deg, rgba(30, 30, 45, 0.6), rgba(10, 10, 20, 0.8))',
+                    padding: '0 25px',
+                    boxShadow: '0 15px 35px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1)'
                 }}>
                     {mobileItems.map((item) => {
                         const Icon = item.icon;

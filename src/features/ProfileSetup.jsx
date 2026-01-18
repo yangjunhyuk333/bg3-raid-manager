@@ -85,16 +85,19 @@ const Modal = ({ children, title, sub, onClose, error }) => (
     </div>
 );
 
-const ProfileSetup = ({ onComplete, initialData, isMobile }) => {
+const ProfileSetup = ({ onComplete, initialData, user, isMobile }) => {
+    // Combine initialData and user props (user prop is passed from Layout)
+    const data = initialData || user;
+
     // mode: 'landing' (default) | 'login' | 'create_camp' | 'join_camp' | 'profile_view'
-    // 'landing' is now the background view. Other modes trigger modals.
-    const [mode, setMode] = useState(initialData ? 'profile_view' : 'landing');
+    // If data exists, defaults to 'profile_view' (Edit Mode)
+    const [mode, setMode] = useState(data ? 'profile_view' : 'landing');
 
     // Form States
-    const [nickname, setNickname] = useState(initialData?.nickname || '');
+    const [nickname, setNickname] = useState(data?.nickname || '');
     const [password, setPassword] = useState('');
     const [selectedClass, setSelectedClass] = useState(
-        initialData ? CLASSES.find(c => c.name === initialData.className) : null
+        data ? CLASSES.find(c => c.name === data.className) : null
     );
     const [campName, setCampName] = useState('');     // For Admin: Create Camp Name / For User: Search
     const [campPassword, setCampPassword] = useState(''); // Shared Password
@@ -156,6 +159,35 @@ const ProfileSetup = ({ onComplete, initialData, isMobile }) => {
     };
 
     // 1. Login Logic
+    // --- Handlers ---
+
+    const handleUpdate = async () => {
+        if (!nickname.trim()) return setError("닉네임을 입력해주세요.");
+        setLoading(true);
+        try {
+            const userRef = doc(db, "users_v2", user.id);
+            const updates = {
+                nickname,
+                className: selectedClass?.name || 'Warrior',
+                role: selectedClass?.id === 'cleric' || selectedClass?.id === 'bard' ? 'Healer' : 'Dealer' // Simple logic
+            };
+
+            await updateDoc(userRef, updates);
+
+            // Update Local Storage
+            const newUser = { ...user, ...updates };
+            localStorage.setItem('bg3_user_profile', JSON.stringify(newUser));
+
+            alert("프로필이 업데이트되었습니다."); // Or just silent success
+            window.location.reload();
+        } catch (e) {
+            console.error(e);
+            setError("업데이트 실패: " + e.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleLogin = async (e) => {
         e.preventDefault();
         setLoading(true);
