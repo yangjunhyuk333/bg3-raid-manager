@@ -95,7 +95,8 @@ const Home = ({ user, setActiveTab, isMobile, onlineUsersCount, setShowSurvivors
                             border: '1px solid rgba(255,255,255,0.1)',
                             borderRadius: '20px', padding: '8px 16px',
                             marginBottom: '20px', cursor: 'pointer',
-                            boxShadow: '0 4px 10px rgba(0,0,0,0.2)'
+                            boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
+                            position: 'relative', zIndex: 10, userSelect: 'none'
                         }}
                     >
                         <Users size={14} color="#4ade80" />
