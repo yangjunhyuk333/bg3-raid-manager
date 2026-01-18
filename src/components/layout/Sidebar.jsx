@@ -20,7 +20,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
     // Profile Edit Form State
     const [editName, setEditName] = React.useState(user?.nickname || '');
     const [editClass, setEditClass] = React.useState(user?.className || 'Warrior');
-    const [editRole, setEditRole] = React.useState(user?.role || 'User');
+    const [editRole, setEditRole] = React.useState(user?.role || (user?.isAdmin ? 'Admin' : 'User'));
 
     const isAdmin = user?.isAdmin === true;
 
@@ -30,7 +30,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
         if (user) {
             setEditName(user.nickname || '');
             setEditClass(user.className || 'Warrior');
-            setEditRole(user.role || 'User');
+            setEditRole(user.role || (user.isAdmin ? 'Admin' : 'User'));
         }
     }, [user, showProfileEdit]);
 
@@ -314,7 +314,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
                         </div>
                         <h3 style={{ fontSize: '1.6rem', marginBottom: '5px', fontWeight: 'bold' }}>{user?.nickname || '모험가'}</h3>
                         <p style={{ color: 'var(--accent-color)', marginBottom: '20px', fontSize: '0.9rem', fontWeight: 'bold' }}>
-                            {user?.className || 'Classless'} <span style={{ opacity: 0.5 }}>|</span> {user?.role === 'Admin' ? '대장 (관리자)' : '대원'}
+                            {user?.className || 'Classless'} <span style={{ opacity: 0.5 }}>|</span> {(user?.role === 'Admin' || user?.isAdmin) ? '대장 (관리자)' : '대원'}
                         </p>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '25px', textAlign: 'left' }}>
@@ -324,7 +324,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
                             </div>
                             <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px' }}>
                                 <p style={{ fontSize: '0.75rem', opacity: 0.6, marginBottom: '4px' }}>신분</p>
-                                <p style={{ fontWeight: 'bold' }}>{user?.role === 'Admin' ? '관리자' : '일반 대원'}</p>
+                                <p style={{ fontWeight: 'bold' }}>{(user?.role === 'Admin' || user?.isAdmin) ? '관리자' : '일반 대원'}</p>
                             </div>
                         </div>
 
