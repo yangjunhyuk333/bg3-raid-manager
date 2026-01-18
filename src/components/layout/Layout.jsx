@@ -7,6 +7,8 @@ import SaveAnalyzer from '../../features/SaveAnalyzer';
 import ProfileSetup from '../../features/ProfileSetup';
 import CampManagement from '../../features/CampManagement';
 import TacticsBoard from '../../features/TacticsBoard';
+import { db } from '../../lib/firebase';
+import { doc, updateDoc, serverTimestamp, collection, query, where, onSnapshot } from 'firebase/firestore';
 
 const Layout = () => {
     const [activeTab, setActiveTab] = useState('home');
@@ -39,6 +41,63 @@ const Layout = () => {
         };
         validateSession();
     }, [user]);
+
+    // 1. HEARTBEAT SYSTEM (Presence)
+    useEffect(() => {
+        if (!user?.id) return;
+
+        const updateHeartbeat = async () => {
+            try {
+                await updateDoc(doc(db, "users_v2", user.id), {
+                    lastSeen: serverTimestamp()
+                });
+            } catch (e) {
+                console.error("Heartbeat fail", e);
+            }
+        };
+
+        // Initial hit
+        updateHeartbeat();
+
+        // Interval
+        const interval = setInterval(updateHeartbeat, 60000); // 1 min
+
+        // Cleanup: Try to set offline? (Optional, unreliable on close)
+
+        return () => clearInterval(interval);
+    }, [user?.id]);
+
+    // 2. NOTIFICATION LISTENER (Wake Up)
+    useEffect(() => {
+        if (!user?.campId || !user?.id) return;
+
+        const q = query(
+            collection(db, "camps", user.campId, "notifications"),
+            where("targetUid", "==", user.id),
+            where("read", "==", false)
+        );
+
+        const unsub = onSnapshot(q, (snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === "added") {
+                    const data = change.doc.data();
+                    if (data.type === 'WAKE_UP') {
+                        // Play Sound
+                        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'); // Simple bell
+                        audio.play().catch(e => console.log("Audio play failed", e));
+
+                        // Show Alert (Native or Toast)
+                        alert(`⏰ ${data.sender}님이 당신을 깨우고 있습니다! 얼른 일어나세요!`);
+
+                        // Mark as Read
+                        updateDoc(change.doc.ref, { read: true });
+                    }
+                }
+            });
+        });
+
+        return () => unsub();
+    }, [user?.campId, user?.id]);
 
     const handleProfileComplete = (userData) => {
         setUser(userData);
