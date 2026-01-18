@@ -38,6 +38,15 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
     const [editClass, setEditClass] = React.useState(user?.className || 'Warrior');
     const [editRole, setEditRole] = React.useState(user?.role || 'User');
 
+    // Sync state when user prop updates
+    React.useEffect(() => {
+        if (user) {
+            setEditName(user.nickname || '');
+            setEditClass(user.className || 'Warrior');
+            setEditRole(user.role || 'User');
+        }
+    }, [user, showProfileEdit]);
+
     const handleProfileUpdate = async () => {
         if (!editName.trim()) return alert("Nickname is required");
         try {
@@ -259,8 +268,8 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
                 </button>
             </div>
 
-            {/* Logout Confirmation Modal */}
-            {showLogoutConfirm && (
+            {/* Logout Confirmation Modal - Portal to Body */}
+            {showLogoutConfirm && createPortal(
                 <div className="modal-overlay" onClick={() => setShowLogoutConfirm(false)}>
                     <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '350px', padding: '30px', textAlign: 'center' }}>
                         <h3 style={{ fontSize: '1.4rem', marginBottom: '10px', marginTop: '10px' }}>로그아웃</h3>
@@ -283,11 +292,12 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
-            {/* Profile Edit Modal */}
-            {showProfileEdit && (
+            {/* Profile Edit Modal - Portal to Body */}
+            {showProfileEdit && createPortal(
                 <div className="modal-overlay" onClick={() => setShowProfileEdit(false)}>
                     <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', padding: '30px' }}>
                         <h3 style={{ fontSize: '1.4rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -353,7 +363,8 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </aside>
     );
