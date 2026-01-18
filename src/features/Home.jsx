@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Calendar, MessageSquare, Activity, ArrowRight, CheckCircle2, LogOut } from 'lucide-react';
+import { Users, Calendar, MessageSquare, Activity, ArrowRight, CheckCircle2, LogOut, Sword, Music, Heart, Leaf, Shield, Target, Zap, Flame, Eye, Wand2, Skull, Ghost, Axe } from 'lucide-react';
 import { db } from '../lib/firebase';
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 
@@ -79,7 +79,7 @@ const Home = ({ user, setActiveTab, isMobile, onlineUsersCount, setShowSurvivors
                 </div>
             )}
 
-            {/* Hero Section: Glass Pill Card (Text Only) */}
+            {/* Hero Section: Glass Pill Card (Text Left, Icon Right) */}
             <div style={{
                 width: '100%',
                 minHeight: '90px',
@@ -88,17 +88,45 @@ const Home = ({ user, setActiveTab, isMobile, onlineUsersCount, setShowSurvivors
                 backdropFilter: 'blur(20px)',
                 border: '1px solid rgba(255,255,255,0.1)',
                 boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', // Centered Text
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', // Space Between
                 padding: isMobile ? '20px 25px' : '0 40px',
-                textAlign: 'center'
+                textAlign: 'left'
             }}>
                 <div>
                     <h1 style={{ margin: 0, fontSize: isMobile ? '1.2rem' : '1.6rem', fontWeight: 'bold' }}>
-                        어서오세요, <span style={{ color: '#ffd700' }}>{user.nickname}</span>님
+                        어서오세요, <span style={{ color: user?.color || '#ffd700' }}>{user.nickname}</span>님
                     </h1>
                     <p style={{ margin: '4px 0 0', fontSize: '0.85rem', opacity: 0.6 }}>
                         발더스 게이트 원정대에 오신 것을 환영합니다.
                     </p>
+                </div>
+
+                {/* Class Icon with User Color */}
+                <div style={{
+                    width: '56px', height: '56px', borderRadius: '50%',
+                    background: user?.color || '#ffd700',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: `0 0 20px ${(user?.color || '#ffd700')}66`, // Glow
+                    flexShrink: 0, marginLeft: '15px'
+                }}>
+                    {(() => {
+                        const cls = user?.className || '';
+                        let Icon = Users;
+                        if (cls.includes('바바리안')) Icon = Axe;
+                        else if (cls.includes('바드')) Icon = Music;
+                        else if (cls.includes('클레릭')) Icon = Heart;
+                        else if (cls.includes('드루이드')) Icon = Leaf;
+                        else if (cls.includes('파이터')) Icon = Sword;
+                        else if (cls.includes('몽크')) Icon = Zap;
+                        else if (cls.includes('팔라딘')) Icon = Shield;
+                        else if (cls.includes('레인저')) Icon = Target;
+                        else if (cls.includes('로그')) Icon = Ghost;
+                        else if (cls.includes('소서러')) Icon = Flame;
+                        else if (cls.includes('워락')) Icon = Skull;
+                        else if (cls.includes('위자드')) Icon = Wand2;
+
+                        return <Icon size={28} color="white" strokeWidth={2.5} />;
+                    })()}
                 </div>
             </div>
 

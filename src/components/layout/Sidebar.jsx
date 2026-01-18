@@ -28,10 +28,18 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
     const [showAdminReset, setShowAdminReset] = React.useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
 
+    // Color Palette
+    const PROFILE_COLORS = [
+        '#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981',
+        '#06b6d4', '#3b82f6', '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e'
+    ];
+
     // Profile Edit Form State
     const [editName, setEditName] = React.useState(user?.nickname || '');
     const [editClass, setEditClass] = React.useState(user?.className || 'Warrior');
     const [editRole, setEditRole] = React.useState(user?.role || (user?.isAdmin ? 'Admin' : 'User'));
+    const [editColor, setEditColor] = React.useState(user?.color || PROFILE_COLORS[Math.floor(Math.random() * PROFILE_COLORS.length)]);
+
 
     const isAdmin = user?.isAdmin === true;
 
@@ -48,6 +56,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
             setEditName(user.nickname || '');
             setEditClass(user.className || 'Warrior');
             setEditRole(user.role || (user.isAdmin ? 'Admin' : 'User'));
+            setEditColor(user.color || PROFILE_COLORS[Math.floor(Math.random() * PROFILE_COLORS.length)]);
         }
     }, [user, showProfileEdit]);
 
@@ -75,7 +84,7 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
         try {
             const { updateDoc, doc } = await import('firebase/firestore');
             const userRef = doc(db, "users_v2", user.id);
-            const updates = { nickname: editName, className: editClass, role: editRole };
+            const updates = { nickname: editName, className: editClass, role: editRole, color: editColor };
 
             await updateDoc(userRef, updates); // Update DB
 
@@ -336,9 +345,10 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
             >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{
-                        width: '40px', height: '40px', borderRadius: '50%', background: 'var(--accent-color)',
+                        width: '40px', height: '40px', borderRadius: '50%',
+                        background: user.color || 'var(--accent-color)', // User Color
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
+                        boxShadow: `0 2px 10px ${(user.color || '#f59e0b')}66`
                     }}>
                         <Users size={20} color="white" />
                     </div>
@@ -470,6 +480,27 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user, onlineUsersCount, se
                                 >
                                     {bg3Classes.map(c => <option key={c} value={c} style={{ background: '#1a1a2e' }}>{c}</option>)}
                                 </select>
+                            </div>
+
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.85rem', opacity: 0.7, marginBottom: '8px' }}>대표 색상</label>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                    {PROFILE_COLORS.map(color => (
+                                        <div
+                                            key={color}
+                                            onClick={() => setEditColor(color)}
+                                            style={{
+                                                width: '28px', height: '28px', borderRadius: '50%',
+                                                background: color,
+                                                cursor: 'pointer',
+                                                border: editColor === color ? '3px solid white' : '1px solid transparent',
+                                                boxShadow: editColor === color ? '0 0 10px ' + color : 'none',
+                                                transform: editColor === color ? 'scale(1.1)' : 'scale(1)',
+                                                transition: 'all 0.2s'
+                                            }}
+                                        />
+                                    ))}
+                                </div>
                             </div>
 
                             {/* Role edit removed as per user request */}
