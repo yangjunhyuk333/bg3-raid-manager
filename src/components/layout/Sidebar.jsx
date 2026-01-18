@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Home, MessageSquare, Calendar, FolderOpen, Users, Settings, Flag, LogOut } from 'lucide-react';
 import logo from '../../assets/logo.svg';
 
-import { collection, onSnapshot, doc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, query, where } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
 const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
@@ -29,7 +29,6 @@ const Sidebar = ({ activeTab, setActiveTab, isMobile, user }) => {
     React.useEffect(() => {
         if (!user?.campId) return;
 
-        const { query, where, onSnapshot, collection } = require('firebase/firestore');
         const q = query(
             collection(db, "users_v2"),
             where("campId", "==", user.campId)
