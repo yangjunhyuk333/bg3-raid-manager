@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Map, Calendar, MoreVertical, Trash2 } from 'lucide-react';
+import { Plus, Search, Map, Calendar, MoreVertical, Trash2, RefreshCw } from 'lucide-react';
 import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
@@ -7,6 +7,7 @@ const TacticsList = ({ user, onSelectTactic }) => {
     const [tactics, setTactics] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
 
     // Create Form
     const [newTitle, setNewTitle] = useState('');
@@ -34,7 +35,7 @@ const TacticsList = ({ user, onSelectTactic }) => {
         });
 
         return () => unsubscribe();
-    }, [user?.campId]);
+    }, [user?.campId, refreshKey]);
 
     const handleCreate = async (e) => {
         e.preventDefault();
@@ -57,6 +58,8 @@ const TacticsList = ({ user, onSelectTactic }) => {
                 elements: [] // Empty canvas initially
             });
             console.log("Tactic created successfully");
+            setLoading(true); // Show loading briefly
+            setRefreshKey(prev => prev + 1); // Force Refresh as requested
             setShowCreateModal(false);
             setNewTitle('');
             setNewDesc('');
@@ -91,19 +94,33 @@ const TacticsList = ({ user, onSelectTactic }) => {
                         파티원들과 함께 작전을 수립하고 공유하세요.
                     </p>
                 </div>
-                <button
-                    onClick={() => setShowCreateModal(true)}
-                    className="glass-button"
-                    style={{
-                        background: 'var(--accent-color)', color: 'white', border: 'none',
-                        padding: '12px 20px', borderRadius: '12px', fontWeight: 'bold',
-                        display: 'flex', alignItems: 'center', gap: '8px',
-                        boxShadow: '0 4px 15px rgba(245, 158, 11, 0.4)'
-                    }}
-                >
-                    <Plus size={20} />
-                    새 작전 수립
-                </button>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
+                        onClick={() => { setLoading(true); setRefreshKey(prev => prev + 1); }}
+                        className="glass-button"
+                        style={{
+                            background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none',
+                            padding: '12px', borderRadius: '12px', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}
+                        title="새로고침"
+                    >
+                        <RefreshCw size={20} />
+                    </button>
+                    <button
+                        onClick={() => setShowCreateModal(true)}
+                        className="glass-button"
+                        style={{
+                            background: 'var(--accent-color)', color: 'white', border: 'none',
+                            padding: '12px 20px', borderRadius: '12px', fontWeight: 'bold',
+                            display: 'flex', alignItems: 'center', gap: '8px',
+                            boxShadow: '0 4px 15px rgba(245, 158, 11, 0.4)'
+                        }}
+                    >
+                        <Plus size={20} />
+                        새 작전 수립
+                    </button>
+                </div>
             </div>
 
             {/* List Grid */}

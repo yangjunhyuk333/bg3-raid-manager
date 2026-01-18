@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import Calendar from 'react-calendar';
-import { Calendar as CalendarIcon, Clock, CheckCircle2, TrendingUp, Users, AlertCircle, Crown } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, CheckCircle2, TrendingUp, Users, AlertCircle, Crown, RefreshCw } from 'lucide-react';
 import { db } from '../lib/firebase';
 import { collection, addDoc, deleteDoc, doc, onSnapshot, query, setDoc, where, getDocs, writeBatch } from 'firebase/firestore';
 
@@ -9,6 +9,7 @@ const RaidScheduler = ({ user, isMobile }) => {
     const [availabilities, setAvailabilities] = useState([]);
     const [confirmedRaids, setConfirmedRaids] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [refreshKey, setRefreshKey] = useState(0);
 
     const selectedDateStr = date.toLocaleDateString('en-CA'); // YYYY-MM-DD
 
@@ -19,6 +20,7 @@ const RaidScheduler = ({ user, isMobile }) => {
             return;
         }
 
+        console.log("Fetching raid data...");
         // Listen to Availabilities
         const qAvail = query(
             collection(db, "availabilities"),
@@ -47,7 +49,7 @@ const RaidScheduler = ({ user, isMobile }) => {
             unsubAvail();
             unsubRaids();
         };
-    }, [user?.campId]);
+    }, [user?.campId, refreshKey]);
 
     // 2. Derive State
     // My availability for selected date
@@ -109,6 +111,8 @@ const RaidScheduler = ({ user, isMobile }) => {
 
             // 2. Optional: Clean up availabilities? Or keep them for record? Keeping them is safer.
             alert("레이드가 확정되었습니다! 파티원들에게 알립니다.");
+            setLoading(true);
+            setRefreshKey(prev => prev + 1); // Force refresh
         } catch (e) {
             console.error(e);
             alert("오류 발생: " + e.message);
@@ -143,9 +147,22 @@ const RaidScheduler = ({ user, isMobile }) => {
 
             {/* 1. Calendar View */}
             <div className="glass-panel" style={{ padding: isMobile ? '15px' : '20px' }}>
-                <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'white', margin: '0 0 20px', fontSize: isMobile ? '1.2rem' : '1.5rem' }}>
-                    <CalendarIcon className="text-accent" /> 레이드 일정 (Raid Scheduler)
-                </h2>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'white', margin: 0, fontSize: isMobile ? '1.2rem' : '1.5rem' }}>
+                        <CalendarIcon className="text-accent" /> 레이드 일정 (Raid Scheduler)
+                    </h2>
+                    <button
+                        onClick={() => { setLoading(true); setRefreshKey(prev => prev + 1); }}
+                        style={{
+                            background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white',
+                            padding: '8px', borderRadius: '8px', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}
+                        title="새로고침"
+                    >
+                        <RefreshCw size={18} />
+                    </button>
+                </div>
 
                 <style>{`
                     .react-calendar { background: transparent !important; border: none !important; width: 100% !important; color: white !important; font-family: inherit; }
